@@ -2,7 +2,7 @@ import time
 from multiprocessing import Queue, Process
 import sys
 sys.path.append('../')
-from mast.interface.MastService import MastService
+from mast.interface.MastServer import MastServer
 
 
 def receive_msg(results_queue: Queue):
@@ -33,10 +33,10 @@ def send_msg(receive_queue: Queue):
 
 
 def test_mast_service():
-    mast_service = MastService()
+    mast_server = MastServer()
     receive_queue = Queue()
     results_queue = Queue()
-    Process(target=mast_service.run, args=(receive_queue, results_queue,)).start()
+    Process(target=mast_server.run, args=(receive_queue, results_queue,)).start()
     Process(target=send_msg, args=(receive_queue,)).start()
     Process(target=receive_msg, args=(results_queue,)).start()
 

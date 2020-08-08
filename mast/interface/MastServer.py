@@ -6,6 +6,7 @@ from torchvision.utils import save_image
 from multiprocessing import Queue
 from PIL import Image
 import sys
+
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../'))
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../'))
 from libs.models import Encoder, Decoder
@@ -14,8 +15,7 @@ from libs.MastConfig import MastConfig
 from config.config import Config
 
 
-
-class MastService(object):
+class MastServer(object):
     """
     调用方式
     mast_service = MastService(root=root)
