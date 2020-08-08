@@ -32,7 +32,7 @@ def send_msg(receive_queue: Queue):
         time.sleep(10)
 
 
-def test_mast_service():
+def test_mast_server():
     mast_server = MastServer()
     receive_queue = Queue()
     results_queue = Queue()
@@ -42,4 +42,4 @@ def test_mast_service():
 
 
 if __name__ == '__main__':
-    test_mast_service()
+    test_mast_server()
