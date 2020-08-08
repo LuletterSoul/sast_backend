@@ -16,13 +16,6 @@ from config.config import Config
 
 
 class MastServer(object):
-    """
-    调用方式
-    mast_service = MastService(root=root)
-    receive_queue = Queue()
-    results_queue = Queue()
-    """
-
     def __init__(self):
         self.root = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../')
         self.cfg = MastConfig(os.path.join(self.root, f'configs/MAST_Configs.yml'))
@@ -37,7 +30,7 @@ class MastServer(object):
     def init_models(self):
         if torch.cuda.is_available() and self.cfg.gpu >= 0:
             self.cfg.device = torch.device(f'cuda:{self.cfg.gpu}')
-            print(f'[MastService]: # CUDA:{self.cfg.gpu} available: {torch.cuda.get_device_name(self.cfg.gpu)}')
+            print(f'[Mast]: # CUDA:{self.cfg.gpu} available: {torch.cuda.get_device_name(self.cfg.gpu)}')
         else:
             self.cfg.device = 'cpu'
 
@@ -64,7 +57,7 @@ class MastServer(object):
                 decoder = decoder.double()
             decoder = decoder.to(self.cfg.device)
             self.decoders[layer_name] = decoder
-        print(f'[MastService]: Load models completely!')
+        print(f'[Mast]: Load models completely!')
 
     def process(self, content_img_id, style_img_id):
         """
@@ -121,7 +114,7 @@ class MastServer(object):
         while True:
             if not receive_queue.empty():
                 msg = receive_queue.get()
-                print(f'[MastService]: get msg from receive queue, start process...')
+                print(f'[Mast]: get msg from receive queue, start process...')
                 content_img_id = msg['content_img_id']
                 style_img_id = msg['style_img_id']
                 try:
@@ -133,6 +126,6 @@ class MastServer(object):
                         'process_step': -1
                     }
                     results_queue.put(result_msg)
-                    print(f'[MastService]: result msg have put into results queue...')
+                    print(f'[Mast]: result msg have put into results queue...')
                 except Exception as e:
-                    print(f'[MastService]: MAST exception: {e}')
+                    print(f'[Mast]: MAST exception: {e}')
