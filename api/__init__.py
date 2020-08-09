@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_restx import Api
 
 from .contents import api as ns_contents
+from .styles import api as ns_styles
 from config import Config
 
 # Create /api/ space
@@ -20,6 +21,7 @@ api = Api(
 api.add_namespace(ns_contents)
 
 # mount related styles blueprint
+api.add_namespace(ns_styles)
 # ...
 
 # mount related stylizations blueprint
