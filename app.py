@@ -22,33 +22,29 @@ from api import blueprint as api
 import requests
 import logging
 
-from werkzeug.contrib.fixers import ProxyFix
-
 
 def create_app():
     flask = Flask(__name__,
                   static_url_path='',
                   static_folder='dist')
-    CORS(flask)
-    flask.wsgi_app = ProxyFix(flask.wsgi_app)
     # mount all blueprints from api module.
     flask.register_blueprint(api)
+    cors = CORS(flask)
     return flask
 
 
 app = create_app()
 
-logger = logging.getLogger('gunicorn.error')
-app.logger.handlers = logger.handlers
-app.logger.setLevel(logger.level)
+# logger = logging.getLogger('gunicorn.error')
+# app.logger.handlers = logger.handlers
+# app.logger.setLevel(logger.level)
 
-
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def index(path):
-    if app.debug:
-        return requests.get('http://frontend:8080/{}'.format(path)).text
-    return app.send_static_file('index.html')
+# @app.route('/', defaults={'path': ''})
+# @app.route('/<path:path>')
+# def index(path):
+#     if app.debug:
+#         return requests.get('http://frontend:8080/{}'.format(path)).text
+#     return app.send_static_file('index.html')
 
 
 # flask app is recommended to be incorporated with gunicorn framework in production environment.

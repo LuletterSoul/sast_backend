@@ -1,11 +1,14 @@
 from flask import Blueprint
-from flask_restplus import Api
+from flask_cors import CORS
+from flask_restx import Api
 
 from .contents import api as ns_contents
 from config import Config
 
 # Create /api/ space
 blueprint = Blueprint('api', __name__, url_prefix='/api')
+
+cors = CORS(blueprint)
 
 api = Api(
     blueprint,
