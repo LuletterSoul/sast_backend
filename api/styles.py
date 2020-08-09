@@ -36,8 +36,8 @@ class Styles(Resource):
         per_page = args['size']
         page = args['page'] - 1
 
-        content_ids = os.listdir(Config.CONTENT_DIRECTORY)
-        total = len(content_ids)
+        style_ids = os.listdir(Config.CONTENT_DIRECTORY)
+        total = len(style_ids)
         pages = int(total / per_page)
 
         return {
