@@ -9,7 +9,7 @@ import datetime
 import os
 import io
 
-api = Namespace('contents', description='Contents related operations')
+api = Namespace('styles', description='Styles related operations')
 
 image_all = reqparse.RequestParser()
 image_all.add_argument('page', default=1, type=int)
@@ -27,7 +27,7 @@ image_download.add_argument('height', type=int, default=512)
 
 
 @api.route('/')
-class Contents(Resource):
+class Styles(Resource):
 
     @api.expect(image_all)
     def get(self):
@@ -36,8 +36,8 @@ class Contents(Resource):
         per_page = args['size']
         page = args['page'] - 1
 
-        content_ids = os.listdir(Config.CONTENT_DIRECTORY)
-        total = len(content_ids)
+        style_ids = os.listdir(Config.CONTENT_DIRECTORY)
+        total = len(style_ids)
         pages = int(total / per_page)
 
         return {
@@ -45,7 +45,7 @@ class Contents(Resource):
             "pages": pages,
             "page": page,
             "size": per_page,
-            "content_ids": content_ids
+            "style_ids": style_ids
         }
 
     @api.expect(image_upload)
@@ -69,19 +69,19 @@ class Contents(Resource):
         return image.filename
 
 
-@api.route('/<content_id>')
-class ContentId(Resource):
+@api.route('/<style_id>')
+class StyleId(Resource):
 
     @api.expect(image_download)
-    def get(self, content_id):
+    def get(self, style_id):
         """ Returns category by ID """
         args = image_download.parse_args()
         as_attachment = args.get('asAttachment')
 
-        # Here content image should be loaded from corresponding directory.
+        # Here style image should be loaded from corresponding directory.
         # image = None
         #
-        pil_image = Image.open(os.path.join(Config.CONTENT_DIRECTORY, f'{content_id}'))
+        pil_image = Image.open(os.path.join(Config.CONTENT_DIRECTORY, f'{style_id}'))
 
         if pil_image is None:
             return {'success': False}, 400
@@ -95,7 +95,7 @@ class ContentId(Resource):
         if not height:
             height = pil_image.size[0]
 
-        img_filename = f'{content_id}.png'
+        img_filename = f'{style_id}.png'
 
         pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()

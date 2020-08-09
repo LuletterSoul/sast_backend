@@ -21,9 +21,9 @@ class Config:
     VERSION = get_tag()
 
     ### Dataset Options
-    CONTENT_DIRECTORY = os.getenv("CONTENT_DIRECTORY", "/contents")
-    STYLE_DIRECTORY = os.getenv("STYLE_DIRECTORY", "/styles")
-    STYLIZATION_DIRECTORY = os.getenv("STYLIZATION", "/stylization")
+    CONTENT_DIRECTORY = os.getenv("CONTENT_DIRECTORY", "data/contents")
+    STYLE_DIRECTORY = os.getenv("STYLE_DIRECTORY", "data/styles")
+    STYLIZATION_DIRECTORY = os.getenv("STYLIZATION_DIRECTORY", "data/stylizations")
 
 
 __all__ = ["Config"]

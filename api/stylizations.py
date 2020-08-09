@@ -9,7 +9,7 @@ import datetime
 import os
 import io
 
-api = Namespace('contents', description='Contents related operations')
+api = Namespace('stylizations', description='Stylizations related operations')
 
 image_all = reqparse.RequestParser()
 image_all.add_argument('page', default=1, type=int)
@@ -20,6 +20,11 @@ image_upload.add_argument('file', location='files',
                           type=FileStorage, required=True,
                           help='PNG or JPG file')
 
+image_stylization = reqparse.RequestParser()
+image_stylization.add_argument('content_id', type=str, required=True, help='Content image id.')
+image_stylization.add_argument('stylization_id', type=str, required=True, help='Style image id.')
+image_stylization.add_argument('alg', type=str, required=True, help='CAST | MAST')
+
 image_download = reqparse.RequestParser()
 image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
@@ -27,7 +32,7 @@ image_download.add_argument('height', type=int, default=512)
 
 
 @api.route('/')
-class Contents(Resource):
+class Stylizations(Resource):
 
     @api.expect(image_all)
     def get(self):
@@ -36,8 +41,8 @@ class Contents(Resource):
         per_page = args['size']
         page = args['page'] - 1
 
-        content_ids = os.listdir(Config.CONTENT_DIRECTORY)
-        total = len(content_ids)
+        stylization_ids = os.listdir(Config.CONTENT_DIRECTORY)
+        total = len(stylization_ids)
         pages = int(total / per_page)
 
         return {
@@ -45,43 +50,48 @@ class Contents(Resource):
             "pages": pages,
             "page": page,
             "size": per_page,
-            "content_ids": content_ids
+            "stylization_ids": stylization_ids
         }
 
-    @api.expect(image_upload)
+    @api.expect(image_stylization)
     def post(self):
         """ Creates an image """
-        args = image_upload.parse_args()
-        image = args['file']
+        args = image_stylization.parse_args()
+        content_id = args['content_id']
+        style_id = args['style_id']
+        alg = args['alg']
 
-        directory = Config.CONTENT_DIRECTORY
-        path = os.path.join(directory, image.filename)
+        content_path = os.path.join(Config.CONTENT_DIRECTORY, content_id)
+        # ...
+        # execute MAST
+        if alg == 'MAST':
+            pass
 
         # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400
 
-        pil_image = Image.open(io.BytesIO(image.read()))
+        # pil_image = Image.open(io.BytesIO(image.read()))
+        #
+        # pil_image.save(path)
+        #
+        # image.close()
+        # pil_image.close()
+        pass
 
-        pil_image.save(path)
 
-        image.close()
-        pil_image.close()
-        return image.filename
-
-
-@api.route('/<content_id>')
-class ContentId(Resource):
+@api.route('/<stylization_id>')
+class StylizationId(Resource):
 
     @api.expect(image_download)
-    def get(self, content_id):
+    def get(self, stylization_id):
         """ Returns category by ID """
         args = image_download.parse_args()
         as_attachment = args.get('asAttachment')
 
-        # Here content image should be loaded from corresponding directory.
+        # Here style image should be loaded from corresponding directory.
         # image = None
         #
-        pil_image = Image.open(os.path.join(Config.CONTENT_DIRECTORY, f'{content_id}'))
+        pil_image = Image.open(os.path.join(Config.CONTENT_DIRECTORY, f'{stylization_id}'))
 
         if pil_image is None:
             return {'success': False}, 400
@@ -95,7 +105,7 @@ class ContentId(Resource):
         if not height:
             height = pil_image.size[0]
 
-        img_filename = f'{content_id}.png'
+        img_filename = f'{stylization_id}.png'
 
         pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()
