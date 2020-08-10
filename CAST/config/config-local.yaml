@@ -1,0 +1,68 @@
+# meta
+exp_name: facetocariture-20190919
+model_name: MaskAligment
+mode: Train
+cuda: true
+ngpu: 2
+device_ids: [2,3]
+device_id: 3
+
+# data
+#face_dataset: /data/lxd/MaskAlignment/CelebA-HQ-img
+#face_mask_dataset: /data/lxd/MaskAlignment/CelebAMaskHQ-mask
+#cari_mask_dataset: /data/lxd/MaskAlignment/Caricature-mask
+face_dataset: datasets/CelebA-HQ-img
+cari_dataset: datasets/Caricature
+face_mask_dataset: datasets/CelebAMaskHQ-mask
+cari_mask_dataset: datasets/Caricature-mask
+#crop_size: 178
+image_size: 512
+face_train_offset: 6400
+face_val_offset: 6272
+cari_train_offset: 32
+cari_val_offset: 16
+batch_size: 8
+
+
+# Save dirs
+log_dir: 'stores/log'
+val_sample_dir: 'stores/val'
+test_sample_dir: 'stores/test'
+model_save_dir: 'stores/model'
+
+# Training Configurations
+lr: 0.002
+beta1: 0.5
+beta2: 0.999
+num_iters: 100000
+num_iters_decay: 25000
+resume_iters: 50000
+
+# Test Configurations
+
+test_iters: 50000
+
+
+# Step size
+train_sample_step: 10
+val_sample_step: 10000
+train_save_step: 2
+val_save_step: 2
+test_save_step: 16
+model_save_step: 10000
+#lr_update_step: 1000
+lr_update_step: 500
+
+
+#Miscellaneous
+use_tensorboard: True,
+colorize: True
+display_warped_face: True
+
+# Model
+dim_in: 30
+num_classes: 10
+img_size: 512
+label_list: ['skin', 'nose', 'l_eye', 'r_eye', 'l_brow', 'r_brow', 'mouth', 'u_lip',
+             'l_lip']
+

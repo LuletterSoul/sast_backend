@@ -1,0 +1,86 @@
+# meta
+model_name: SPADE
+cuda: true
+ngpu: 1
+device_ids: [6,7]
+common: style transfer, spade, using warped face based WCT transfrom, using local style loss,
+  using local spade, using local norm
+
+# datall
+#face_dataset: /data/lxd/MaskAlignment/CelebA-HQ-img
+#face_mask_dataset: /data/lxd/MaskAlignment/CelebAMaskHQ-mask
+#cari_mask_dataset: /data/lxd/MaskAlignment/Caricature-mask
+#crop_size: 178
+test_pairs_path: 'datasets/test-pairs.xlsx'
+image_size: 512
+face_train_offset: 192
+face_val_offset: 96
+cari_train_offset: 32
+cari_val_offset: 16
+batch_size: 8
+workers: 4
+# Save dirs
+log_dir: 'stores/log'
+val_sample_dir: 'stores/val'
+test_sample_dir: 'stores/test'
+model_save_dir: 'stores/model'
+
+# Training Configurations
+lr: 0.0001
+beta1: 0.5
+beta2: 0.999
+lambda_smooth: 1
+num_iters: 100000
+num_iters_decay: 25000
+
+# Test Configurations
+
+
+
+# Step size
+train_sample_step: 10
+transfer_sample_step: 1000
+val_sample_step: 10000
+train_save_step: 2
+val_save_step: 1
+test_save_step: 1
+model_save_step: 10000
+#lr_update_step: 1000
+lr_update_step: 50
+weight_step: 1000000
+
+
+
+#Miscellaneous
+use_tensorboard: True,
+colorize: True
+display_warped_face: True
+
+
+# Model
+dim_in: 20
+num_classes: 10
+img_size: 512
+lr_decay: 5e-5
+normalization: bn
+
+
+exp_name: style-transfer-11-3-adain-caribased-test
+mode: Test
+device_id: 2
+dataset: 'wct'
+load_warp: False
+style_weight: 10.0
+content_weight: 1.0
+norm_mode: 'global'
+style_mode: 'adain'
+loss: 'global'
+scale: 0.5
+alpha: 1
+resume_iters: 0
+test_iters: 160000
+pre_train_decoder: True
+vgg: checkpoints/vgg_normalised.pth
+decoder: checkpoints/decoder.pth
+
+

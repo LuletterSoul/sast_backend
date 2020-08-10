@@ -1,0 +1,79 @@
+# meta
+exp_name: 10-13-no-diff-cat
+model_name: MaskAligment
+mode: Train
+cuda: true
+ngpu: 2
+device_ids: [2,3]
+device_id: 0
+common: warping and with TV loss,batch normalization,weigted_tv_loss = 1
+
+# datall
+#face_dataset: /data/lxd/MaskAlignment/CelebA-HQ-img
+#face_mask_dataset: /data/lxd/MaskAlignment/CelebAMaskHQ-mask
+#cari_mask_dataset: /data/lxd/MaskAlignment/Caricature-mask
+face_dataset: datasets/CelebA-HQ-img
+cari_dataset: datasets/Caricature
+face_mask_dataset: datasets/CelebAMaskHQ-mask
+cari_mask_dataset: datasets/Caricature-mask
+#crop_size: 178
+image_size: 512
+face_train_offset: 192
+face_val_offset: 96
+cari_train_offset: 32
+cari_val_offset: 16
+batch_size: 8
+workers: 0
+
+
+# Save dirs
+log_dir: 'stores/log'
+val_sample_dir: 'stores/val'
+test_sample_dir: 'stores/test'
+model_save_dir: 'stores/model'
+
+# Training Configurations
+lr: 0.0005
+beta1: 0.5
+beta2: 0.999
+lambda_smooth: 1
+num_iters: 70000
+num_iters_decay: 25000
+resume_iters: 0
+
+# Test Configurations
+
+test_iters: 70000
+
+
+# Step size
+train_sample_step: 10
+val_sample_step: 5000
+train_save_step: 2
+val_save_step: 1
+test_save_step: 1
+model_save_step: 5000
+#lr_update_step: 1000
+lr_update_step: 50
+weight_step: 1000000
+warp_step: 0
+tv_step: 1000000
+
+
+#Miscellaneous
+use_tensorboard: True,
+colorize: True
+display_warped_face: True
+
+# Model
+dim_in: 20
+num_classes: 10
+img_size: 512
+load_warp: True
+normalization: bn
+bilinear: True
+custom_weight: True
+label_list: ['skin', 'nose', 'l_eye', 'r_eye', 'l_brow', 'r_brow', 'mouth', 'u_lip',
+             'l_lip']
+  
+
