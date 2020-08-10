@@ -10,13 +10,9 @@
 @version 1.0
 @desc:
 """
-import eventlet
-
-eventlet.monkey_patch(thread=False)
-
 from flask import Flask
 from flask_cors import CORS
-
+from sockets import socketio
 from api import blueprint as api
 
 import requests
@@ -29,11 +25,13 @@ def create_app():
                   static_folder='dist')
     # mount all blueprints from api module.
     flask.register_blueprint(api)
+    socketio.init_app(flask)
     cors = CORS(flask)
     return flask
 
 
 app = create_app()
+socketio.run(app=app, host='0.0.0.0')
 
 # logger = logging.getLogger('gunicorn.error')
 # app.logger.handlers = logger.handlers
@@ -52,4 +50,4 @@ app = create_app()
 
 
 # but if you are testing in development environment, execute app.run() should be fine.
-app.run()
+# app.run()

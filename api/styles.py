@@ -10,6 +10,8 @@ import os
 import io
 
 api = Namespace('styles', description='Styles related operations')
+# create data storage directory
+os.makedirs(Config.STYLE_DIRECTORY, exist_ok=True)
 
 image_all = reqparse.RequestParser()
 image_all.add_argument('page', default=1, type=int)
@@ -36,7 +38,7 @@ class Styles(Resource):
         per_page = args['size']
         page = args['page'] - 1
 
-        style_ids = os.listdir(Config.CONTENT_DIRECTORY)
+        style_ids = os.listdir(Config.STYLE_DIRECTORY)
         total = len(style_ids)
         pages = int(total / per_page)
 
@@ -54,7 +56,7 @@ class Styles(Resource):
         args = image_upload.parse_args()
         image = args['file']
 
-        directory = Config.CONTENT_DIRECTORY
+        directory = Config.STYLE_DIRECTORY
         path = os.path.join(directory, image.filename)
 
         # if os.path.exists(path):

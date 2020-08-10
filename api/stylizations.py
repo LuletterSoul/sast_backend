@@ -6,10 +6,12 @@ from flask import send_file
 from config import Config
 from PIL import Image
 import datetime
+from sockets import socketio
 import os
 import io
 
 api = Namespace('stylizations', description='Stylizations related operations')
+os.makedirs(Config.STYLIZATION_DIRECTORY, exist_ok=True)
 
 image_all = reqparse.RequestParser()
 image_all.add_argument('page', default=1, type=int)
@@ -22,8 +24,14 @@ image_upload.add_argument('file', location='files',
 
 image_stylization = reqparse.RequestParser()
 image_stylization.add_argument('content_id', type=str, required=True, help='Content image id.')
-image_stylization.add_argument('stylization_id', type=str, required=True, help='Style image id.')
+image_stylization.add_argument('style_id', type=str, required=True, help='Style image id.')
 image_stylization.add_argument('alg', type=str, required=True, help='CAST | MAST')
+image_stylization.add_argument('content_mask', location='files',
+                               type=FileStorage, required=False,
+                               help='PNG or JPG file')
+image_stylization.add_argument('style_mask', location='files',
+                               type=FileStorage, required=False,
+                               help='PNG or JPG file')
 
 image_download = reqparse.RequestParser()
 image_download.add_argument('asAttachment', type=bool, default=False)
@@ -61,7 +69,9 @@ class Stylizations(Resource):
         style_id = args['style_id']
         alg = args['alg']
 
-        content_path = os.path.join(Config.CONTENT_DIRECTORY, content_id)
+        content_mask = args['content_mask']
+        style_mask = args['style_mask']
+
         # ...
         # execute MAST
         if alg == 'MAST':
@@ -76,7 +86,13 @@ class Stylizations(Resource):
         #
         # image.close()
         # pil_image.close()
-        pass
+        socketio.emit('onSynthesisComplete', {
+            'stylization_id': 'test.png',
+            'update_steps': 100,
+            'total': 200,
+            'percent': 0.35
+        })
+        return
 
 
 @api.route('/<stylization_id>')

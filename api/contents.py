@@ -10,6 +10,8 @@ import os
 import io
 
 api = Namespace('contents', description='Contents related operations')
+# create data storage directory
+os.makedirs(Config.CONTENT_DIRECTORY, exist_ok=True)
 
 image_all = reqparse.RequestParser()
 image_all.add_argument('page', default=1, type=int)
