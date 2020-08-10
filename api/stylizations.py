@@ -9,6 +9,7 @@ import datetime
 from sockets import socketio
 import os
 import io
+from .components import send_queue, res_queue
 
 api = Namespace('stylizations', description='Stylizations related operations')
 os.makedirs(Config.STYLIZATION_DIRECTORY, exist_ok=True)
@@ -75,7 +76,11 @@ class Stylizations(Resource):
         # ...
         # execute MAST
         if alg == 'MAST':
-            pass
+            msg = {
+                'content_img_id': content_id,
+                'style_img_id': style_id
+            }
+            send_queue.put(msg)
 
         # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400

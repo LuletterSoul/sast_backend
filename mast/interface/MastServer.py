@@ -25,9 +25,9 @@ class MastServer(object):
         os.makedirs(self.content_dir, exist_ok=True)
         os.makedirs(self.style_dir, exist_ok=True)
         os.makedirs(self.stylized_dir, exist_ok=True)
-        self.mast = MAST(self.cfg)
 
     def init_models(self):
+        self.mast = MAST(self.cfg)
         if torch.cuda.is_available() and self.cfg.gpu >= 0:
             self.cfg.device = torch.device(f'cuda:{self.cfg.gpu}')
             print(f'[Mast]: # CUDA:{self.cfg.gpu} available: {torch.cuda.get_device_name(self.cfg.gpu)}')

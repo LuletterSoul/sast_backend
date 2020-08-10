@@ -5,6 +5,7 @@ from flask_restx import Api
 from .contents import api as ns_contents
 from .styles import api as ns_styles
 from .stylizations import api as ns_stylizations
+from .components import send_queue, res_queue
 from config import Config
 
 # Create /api/ space
