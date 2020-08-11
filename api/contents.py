@@ -97,7 +97,7 @@ class ContentId(Resource):
         if not height:
             height = pil_image.size[0]
 
-        img_filename = f'{content_id}.png'
+        img_filename = f'{content_id}'
 
         pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()

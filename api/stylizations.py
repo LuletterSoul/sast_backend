@@ -107,7 +107,7 @@ class StylizationId(Resource):
         # Here style image should be loaded from corresponding directory.
         # image = None
         #
-        pil_image = Image.open(os.path.join(Config.CONTENT_DIRECTORY, f'{stylization_id}'))
+        pil_image = Image.open(os.path.join(Config.STYLIZATION_DIRECTORY, f'{stylization_id}'))
 
         if pil_image is None:
             return {'success': False}, 400
@@ -121,7 +121,7 @@ class StylizationId(Resource):
         if not height:
             height = pil_image.size[0]
 
-        img_filename = f'{stylization_id}.png'
+        img_filename = f'{stylization_id}'
 
         pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()
