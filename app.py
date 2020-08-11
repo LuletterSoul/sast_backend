@@ -8,12 +8,13 @@
 @file: __init__.py.py
 @time: 2020/8/8 16:11
 @version 1.0
-@desc:
+@descwerkzeug:
 """
 from flask import Flask
 from flask_cors import CORS
 from sockets import socketio
 from api import blueprint as api
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import requests
 import logging
@@ -23,15 +24,17 @@ def create_app():
     flask = Flask(__name__,
                   static_url_path='',
                   static_folder='dist')
+    flask.config['SECRET_KEY'] = 'secret!'
     # mount all blueprints from api module.
+    flask.wsgi_app = ProxyFix(flask.wsgi_app)
     flask.register_blueprint(api)
     socketio.init_app(flask)
-    cors = CORS(flask)
+    CORS(flask)
     return flask
 
 
 app = create_app()
-socketio.run(app=app, host='0.0.0.0')
+socketio.run(app=app, host='localhost')
 
 # logger = logging.getLogger('gunicorn.error')
 # app.logger.handlers = logger.handlers

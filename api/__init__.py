@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_cors import CORS
-from flask_restx import Api
+from flask_restplus import Api
 
 from .contents import api as ns_contents
 from .styles import api as ns_styles
