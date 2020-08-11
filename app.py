@@ -42,7 +42,6 @@ if __name__ == '__main__':
     app = create_app()
     socketio.run(app=app, host='0.0.0.0')
 
-
     # logger = logging.getLogger('gunicorn.error')
     # app.logger.handlers = logger.handlers
     # app.logger.setLevel(logger.level)

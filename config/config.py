@@ -24,6 +24,7 @@ class Config:
     CONTENT_DIRECTORY = os.getenv("CONTENT_DIRECTORY", "data/contents")
     STYLE_DIRECTORY = os.getenv("STYLE_DIRECTORY", "data/styles")
     STYLIZATION_DIRECTORY = os.getenv("STYLIZATION_DIRECTORY", "data/stylizations")
+    MAST_TOTAL_TIME = 5
 
 
 __all__ = ["Config"]

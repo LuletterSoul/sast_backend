@@ -3,8 +3,7 @@ from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
 from flask import send_file
 from multiprocessing import Process
-from threading import Timer
-
+import threading
 from config import Config
 from PIL import Image
 import time
@@ -85,7 +84,7 @@ class Stylizations(Resource):
                 'style_img_id': style_id
             }
             send_queue.put(msg)
-            Process(target=mast_report, args=(msg, res_queue,)).start()
+            threading.Thread(target=mast_report, args=(msg, res_queue,)).start()
 
         # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400

@@ -9,6 +9,7 @@ from flask_socketio import (
     emit, Namespace
 )
 from flask import Flask, render_template, request
+from config.config import Config
 
 from config import Config
 import eventlet
@@ -93,8 +94,8 @@ def mast_report(msg, res_queue):
                 'stylization_id': stylization_id,
                 'current_update_steps': -1,
                 'current_cost_time': cost_time,
-                'percent': cost_time / 5,  # 1 represent 'COMPLETE',otherwise it is 'SYNTHESISING',
-                'total_time': 5,
+                'percent': cost_time / Config.MAST_TOTAL_TIME,  # 1 represent 'COMPLETE',otherwise it is 'SYNTHESISING',
+                'total_time': Config.MAST_TOTAL_TIME,
                 'total_update_steps': -1,
             }
             synthesising(body)
