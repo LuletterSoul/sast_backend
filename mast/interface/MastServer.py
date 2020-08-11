@@ -6,6 +6,7 @@ from torchvision.utils import save_image
 from multiprocessing import Queue
 from PIL import Image
 import sys
+import time
 
 # sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../'))
 # sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../'))

@@ -1,15 +1,19 @@
-from flask_restx import Namespace, Resource, reqparse
+from flask_restplus import Namespace, Resource, reqparse
 from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
 from flask import send_file
+from multiprocessing import Process
+from threading import Timer
 
 from config import Config
 from PIL import Image
+import time
 import datetime
-from sockets import socketio
+from sockets import synthesis_complete, synthesising
 import os
 import io
 from .components import send_queue, res_queue
+from sockets import mast_report
 
 api = Namespace('stylizations', description='Stylizations related operations')
 os.makedirs(Config.STYLIZATION_DIRECTORY, exist_ok=True)
@@ -81,6 +85,7 @@ class Stylizations(Resource):
                 'style_img_id': style_id
             }
             send_queue.put(msg)
+            Process(target=mast_report, args=(msg, res_queue,)).start()
 
         # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400
@@ -91,12 +96,11 @@ class Stylizations(Resource):
         #
         # image.close()
         # pil_image.close()
-        socketio.emit('onSynthesisComplete', {
-            'stylization_id': 'test.png',
-            'update_steps': 100,
-            'total': 200,
-            'percent': 0.35
-        })
+        # synthesis_complete({
+        #     'content_id': content_id,
+        #     'style_id': style_id,
+        #     'stylization_id': 'test.png',
+        # })
         return
 
 

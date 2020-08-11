@@ -8,7 +8,7 @@
 @file: __init__.py.py
 @time: 2020/8/8 16:11
 @version 1.0
-@desc:
+@descwerkzeug:
 """
 from flask import Flask
 from flask_cors import CORS
@@ -17,6 +17,7 @@ from api import blueprint as api
 from multiprocessing import Process
 from mast.interface.MastServer import MastServer
 from api.components import send_queue, res_queue
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import requests
 import logging
@@ -26,10 +27,12 @@ def create_app():
     flask = Flask(__name__,
                   static_url_path='',
                   static_folder='dist')
+    flask.config['SECRET_KEY'] = 'secret!'
     # mount all blueprints from api module.
+    flask.wsgi_app = ProxyFix(flask.wsgi_app)
     flask.register_blueprint(api)
     socketio.init_app(flask)
-    cors = CORS(flask)
+    CORS(flask)
     return flask
 
 
@@ -38,6 +41,7 @@ if __name__ == '__main__':
     Process(target=mast_server.run, args=(send_queue, res_queue,)).start()
     app = create_app()
     socketio.run(app=app, host='0.0.0.0')
+
 
     # logger = logging.getLogger('gunicorn.error')
     # app.logger.handlers = logger.handlers
