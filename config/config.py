@@ -24,6 +24,8 @@ class Config:
     CONTENT_DIRECTORY = os.getenv("CONTENT_DIRECTORY", "data/contents")
     STYLE_DIRECTORY = os.getenv("STYLE_DIRECTORY", "data/styles")
     STYLIZATION_DIRECTORY = os.getenv("STYLIZATION_DIRECTORY", "data/stylizations")
+    ANNOTATION_DIRECTORY = os.getenv("ANNOTATION_DIRECTORY", "data/annotations")
+    CATEGORIES_DIRECTORY = os.getenv("CATEGORIES_DIRECTORY", "data/categories")
 
 
 __all__ = ["Config"]
