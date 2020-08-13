@@ -1,5 +1,5 @@
 import time
-
+import os
 from flask import session
 from flask_socketio import (
     SocketIO,
@@ -9,6 +9,7 @@ from flask_socketio import (
     emit, Namespace
 )
 from flask import Flask, render_template, request
+from config.config import Config
 
 from config import Config
 import eventlet
@@ -66,3 +67,35 @@ def synthesising(body):
     """
     print(f'notify fronted synthesis with body: {body}')
     socketio.emit('onSynthesising', body, broadcast=True)
+
+
+def mast_report(msg, res_queue):
+    start_time = time.time()
+    c_basename = os.path.splitext(msg['content_img_id'])[0]
+    s_basename = os.path.splitext(msg['style_img_id'])[0]
+    stylization_id = f'{c_basename}_{s_basename}.png'
+
+    while True:
+        if not res_queue.empty():
+            res_msg = res_queue.get()
+            body = {
+                'content_id': res_msg['content_img_id'],
+                'style_id': res_msg['style_img_id'],
+                'stylization_id': res_msg['stylized_img_id'],
+            }
+            synthesis_complete(body)
+            break
+        else:
+            time.sleep(0.5)
+            cost_time = time.time() - start_time
+            body = {
+                'content_id': msg['content_img_id'],
+                'style_id': msg['style_img_id'],
+                'stylization_id': stylization_id,
+                'current_update_steps': -1,
+                'current_cost_time': cost_time,
+                'percent': cost_time / Config.MAST_TOTAL_TIME,  # 1 represent 'COMPLETE',otherwise it is 'SYNTHESISING',
+                'total_time': Config.MAST_TOTAL_TIME,
+                'total_update_steps': -1,
+            }
+            synthesising(body)

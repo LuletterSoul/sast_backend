@@ -1,11 +1,14 @@
 # coding=UTF-8
 import os
 import torch
+import numpy as np
+import cv2 as cv
 from torchvision import transforms
 from torchvision.utils import save_image
 from multiprocessing import Queue
 from PIL import Image
 import sys
+import time
 
 # sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../'))
 # sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../'))
@@ -25,9 +28,9 @@ class MastServer(object):
         os.makedirs(self.content_dir, exist_ok=True)
         os.makedirs(self.style_dir, exist_ok=True)
         os.makedirs(self.stylized_dir, exist_ok=True)
-        self.mast = MAST(self.cfg)
 
     def init_models(self):
+        self.mast = MAST(self.cfg)
         if torch.cuda.is_available() and self.cfg.gpu >= 0:
             self.cfg.device = torch.device(f'cuda:{self.cfg.gpu}')
             print(f'[Mast]: # CUDA:{self.cfg.gpu} available: {torch.cuda.get_device_name(self.cfg.gpu)}')
@@ -59,16 +62,20 @@ class MastServer(object):
             self.decoders[layer_name] = decoder
         print(f'[Mast]: Load models completely!')
 
-    def process(self, content_img_id, style_img_id):
+    def process(self, content_img_id, style_img_id, width, height, c_mask, s_mask):
         """
         :param content_img_id: 内容图id,带后缀
         :param style_img_id: 风格图id,带后缀
+        :param width:
+        :param height:
+        :param c_mask: [height, width]
+        :param s_mask: [height, width]
         :return: 风格化图片id,带后缀
         """
         c_path = os.path.join(self.content_dir, content_img_id)
         s_path = os.path.join(self.style_dir, style_img_id)
-        c_tensor = transforms.ToTensor()(Image.open(c_path).convert('RGB')).unsqueeze(0)
-        s_tensor = transforms.ToTensor()(Image.open(s_path).convert('RGB')).unsqueeze(0)
+        c_tensor = transforms.ToTensor()(Image.open(c_path).resize((width, height)).convert('RGB')).unsqueeze(0)
+        s_tensor = transforms.ToTensor()(Image.open(s_path).resize((width, height)).convert('RGB')).unsqueeze(0)
         if self.cfg.type == 64:
             c_tensor = c_tensor.double()
             s_tensor = s_tensor.double()
@@ -79,7 +86,7 @@ class MastServer(object):
         for layer_name in self.cfg.layers.split(','):
             with torch.no_grad():
                 cf = self.encoder(c_tensor)[layer_name]
-                csf = self.mast.transform(cf, sf[layer_name])
+                csf = self.mast.transform(cf, sf[layer_name], c_mask, s_mask)
                 csf = self.cfg.style_weight * csf + (1 - self.cfg.style_weight) * cf
                 out_tensor = self.decoders[layer_name](csf, layer_name)
             c_tensor = out_tensor
@@ -88,12 +95,47 @@ class MastServer(object):
         save_image(out_tensor, out_path, nrow=1, padding=0)
         return stylized_img_id
 
+    @staticmethod
+    def convert_points(width, height, points_list):
+        width_offset = int(width / 2)
+        height_offset = int(height / 2)
+        for i in range(len(points_list)):
+            for j in range(len(points_list[i])):
+                points_list[i][j][0] += width_offset
+                points_list[i][j][1] += height_offset
+        return points_list
+
+    def create_content_and_style_mask(self, width, height, content_mask_points_list, style_mask_points_list):
+        if content_mask_points_list == [] or style_mask_points_list == []:
+            c_mask = None
+            s_mask = None
+        else:
+            content_mask_points_list = self.convert_points(width, height, content_mask_points_list)
+            style_mask_points_list = self.convert_points(width, height, style_mask_points_list)
+            c_mask = np.zeros((height, width), dtype=np.uint8)
+            s_mask = np.zeros((height, width), dtype=np.uint8)
+            label = 1
+            for c_mask_points in content_mask_points_list:
+                c_mask_points_array = np.array(c_mask_points)
+                c_mask = cv.fillPoly(c_mask, c_mask_points_array, label)
+                label += 1
+            label = 1
+            for s_mask_points in style_mask_points_list:
+                s_mask_points_array = np.array(s_mask_points)
+                s_mask = cv.fillPoly(s_mask, s_mask_points_array, label)
+                label += 1
+        return c_mask, s_mask
+
     def run(self, receive_queue: Queue, results_queue: Queue):
         """
         receive_queue中存储的消息格式为
         {
             'content_img_id': content_img_id,
-            'style_img_id': style_img_name
+            'style_img_id': style_img_name,
+            'width': width,
+            'height': height,
+            'content_mask': content_mask,
+            'style_mask': style_mask
         }
         其中id为string格式，带有后缀，如in1.png
 
@@ -117,8 +159,14 @@ class MastServer(object):
                 print(f'[Mast]: get msg from receive queue, start process...')
                 content_img_id = msg['content_img_id']
                 style_img_id = msg['style_img_id']
+                width = msg['width']
+                height = msg['height']
+                content_mask_points_list = msg['content_mask']
+                style_mask_points_list = msg['style_mask']
+                c_mask, s_mask = self.create_content_and_style_mask(width, height, content_mask_points_list,
+                                                                    style_mask_points_list)
                 try:
-                    stylized_img_id = self.process(content_img_id, style_img_id)
+                    stylized_img_id = self.process(content_img_id, style_img_id, width, height, c_mask, s_mask)
                     result_msg = {
                         'content_img_id': content_img_id,
                         'style_img_id': style_img_id,

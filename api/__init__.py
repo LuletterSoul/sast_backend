@@ -7,6 +7,7 @@ from .styles import api as ns_styles
 from .stylizations import api as ns_stylizations
 from .categories import api as ns_categories
 from .annotations import api as ns_annotations
+from .components import send_queue, res_queue
 from config import Config
 
 # Create /api/ space
