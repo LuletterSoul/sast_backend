@@ -13,10 +13,10 @@
 import multiprocessing as mp
 import pickle
 
-from utils.misc import *
-from utils.warp import *
-from utils.wct import whiten_and_color
-from constant import *
+from .utils.misc import *
+from .utils.warp import *
+from .utils.wct import whiten_and_color
+from .constant import *
 
 # FACE_DATASET_PATH = './CelebAMaskHQ-mask'
 # FACE_LANDMARKS_PATH = './CelebAMaskHQ-mask-landmarks'

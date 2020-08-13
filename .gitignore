@@ -125,3 +125,6 @@ dmypy.json
 .pyre/
 /mast/trained_models/*
 /data
+.idea
+/cast/.idea
+/CAST/.idea
