@@ -3,11 +3,13 @@ import torch
 import gc
 import os
 import matplotlib
+import numpy as np
+import cv2 as cv
 import torch.nn.functional as f
-import sys
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-from utils import batch_split, batch_concatenate, load_seg, euclidean_dist
-from PatchMatch import patch_match_split, soft_patch_match_split
+# import sys
+# sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from .utils import batch_split, batch_concatenate, load_seg, euclidean_dist
+from .PatchMatch import patch_match_split, soft_patch_match_split
 
 matplotlib.use('Agg')
 
@@ -50,6 +52,7 @@ class MAST(object):
             elif self.args.dist_type == 'euclidean':
                 dist = euclidean_dist(cf, sf)
             if mask is not None:
+                mask = mask.type_as(dist).to(self.args.device)
                 dist = torch.mul(dist, mask)
 
             hcwc, hsws = cf_size[1], sf_size[1]
@@ -146,12 +149,34 @@ class MAST(object):
             sf = self.pool(sf)
         return cf, sf
 
-    def transform(self, cf, sf, content_seg_path=None, style_seg_path=None):
+    def cal_mask(self, c_mask, s_mask, cf_size, sf_size):
+        hc, wc = cf_size[2], cf_size[3]
+        hs, ws = sf_size[2], sf_size[3]
+        c_mask = cv.resize(c_mask, (hc, wc), cv.INTER_NEAREST)
+        s_mask = cv.resize(s_mask, (hs, ws), cv.INTER_NEAREST)
+        max_color_index = min(np.max(c_mask), np.max(s_mask))
+        c_mask_tensor = torch.from_numpy(c_mask)
+        s_mask_tensor = torch.from_numpy(s_mask)
+        mask = torch.zeros(hc * wc, hs * ws).int()
+        for color_index in range(0, max_color_index + 1):
+            c_pos = torch.where(c_mask_tensor == color_index)
+            s_pos = torch.where(s_mask_tensor == color_index)
+            c_index = c_pos[0] * hc + c_pos[1]
+            s_index = s_pos[0] * hs + s_pos[1]
+            col = torch.zeros(hc * wc, 1).int()
+            col.index_fill_(0, c_index, 1)
+            row = torch.zeros(1, hs * ws).int()
+            row.index_fill_(1, s_index, 1)
+            temp = torch.mm(col, row)
+            mask = mask.__or__(temp)
+        return mask
+
+    def transform(self, cf, sf, c_mask, s_mask):
         """
         :param cf: [n, c, hc, wc]
         :param sf: [n, c, hs, ws]
-        :param content_seg_path: content segmentation path
-        :param style_seg_path: style segmentation path
+        :param c_mask: content mask
+        :param s_mask: style mask
         :return: csf [n, c, hc, wc]
         """
         ori_cf = cf.clone()
@@ -163,26 +188,10 @@ class MAST(object):
         cf_size = cf.size()
         sf_size = sf.size()
         # print(f'ori_cf_size={ori_cf_size}, cf_size={cf_size}, ori_sf_size={ori_sf_size}, sf_size={sf_size}')
-
-        hc, wc = cf_size[2], cf_size[3]
-        hs, ws = sf_size[2], sf_size[3]
-        mask = None
-        if content_seg_path is not None and style_seg_path is not None:
-            if not self.can_seg(content_seg_path, style_seg_path):
-                return cf
-            c_masks, s_masks = load_seg(content_seg_path, style_seg_path, (wc, hc), (ws, hs))
-            c_masks = c_masks.type_as(cf).to(self.args.device)
-            s_masks = s_masks.type_as(cf).to(self.args.device)
-            c_masks = c_masks.view(c_masks.size()[0], -1)
-            s_masks = s_masks.view(s_masks.size()[0], -1)
-            c_masks = c_masks.unsqueeze(2)
-            s_masks = s_masks.unsqueeze(1)
-            # print(f'cf.size={cf.size()}')
-            # print(f'sf.size={sf.size()}')
-            # print(f'c_masks.size={c_masks.size()}')
-            # print(f's_masks.size={s_masks.size()}')
-            masks = torch.bmm(c_masks, s_masks)
-            mask = masks.max(dim=0).values
+        if c_mask is not None and s_mask is not None:
+            mask = self.cal_mask(c_mask, s_mask, cf_size, sf_size)
+        else:
+            mask = None
 
         cf_split = batch_split(cf, patch_size=(self.args.patch_size, self.args.patch_size))
         sf_split = batch_split(sf, patch_size=(self.args.patch_size, self.args.patch_size))

@@ -87,7 +87,11 @@ class Stylizations(Resource):
         if alg == 'MAST':
             msg = {
                 'content_img_id': content_id,
-                'style_img_id': style_id
+                'style_img_id': style_id,
+                'width': width,
+                'height': height,
+                'content_mask': content_mask,
+                'style_mask': style_mask
             }
             send_queue.put(msg)
             threading.Thread(target=mast_report, args=(msg, res_queue,)).start()
