@@ -24,6 +24,7 @@ from config import Config
 logger = logging.getLogger('gunicorn.error')
 
 api = Namespace('annotations', description='Annotation related operations')
+os.makedirs(Config.ANNOTATION_DIRECTORY, exist_ok=True)
 
 create_annotation = reqparse.RequestParser()
 create_annotation.add_argument(
