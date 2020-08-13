@@ -6,12 +6,12 @@ import os
 image_dir = os.getcwd() + '/images/'
 model_dir = os.getcwd() + '/models/'
 
-from transforms import *
+from .transforms import *
 from torch.autograd import Variable
 from torch import optim
 import torchvision
 from torchvision import transforms
-from network import *
+from .network import *
 import argparse
 import time
 
@@ -83,7 +83,6 @@ content_weights = [alpha]
 
 laplacia_layers = ['r32']
 laplacia_weights = [beta]
-
 
 mutex_layers = []
 mutex_weights = []

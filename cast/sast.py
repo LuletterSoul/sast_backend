@@ -3,17 +3,17 @@ import os
 
 model_dir = os.getcwd() + '/models/'
 
-from transforms import *
+from .transforms import *
 from torch.autograd import Variable
 from torch import optim
 import torchvision
 from torchvision import transforms
-from network import *
+from .network import *
 import argparse
 import time
+
+
 def st_content_to_style():
-
-
     parser = argparse.ArgumentParser()
     # Basic options
     parser.add_argument('--content_dir', type=str, default='images/content',
@@ -83,7 +83,6 @@ def st_content_to_style():
     laplacia_layers = ['r32']
     laplacia_weights = [beta]
 
-
     mutex_layers = []
     mutex_weights = []
 
@@ -113,20 +112,17 @@ def st_content_to_style():
     mask_tf = transforms.Compose([ToUnNormalizedTensor()])
     postpb = transforms.Compose([transforms.ToPILImage()])
 
-
     def postp(tensor):  # to clip results in the range [0,1]
         t = post_tensor(tensor)
         img = postpb(t)
         return img
         # return t
 
-
     def post_tensor(tensor):
         t = postpa(tensor)
         t[t > 1] = 1
         t[t < 0] = 0
         return t
-
 
     content_dataset = FlatFolderDataset(args.content_dir, args.content_mask_dir, prep, prep_hr, mask_tf)
     style_dataset = FlatFolderDataset(args.style_dir, args.style_mask_dir, prep, prep_hr, mask_tf)
@@ -282,7 +278,6 @@ def st_content_to_style():
                     #             print([loss_layers[li] + ': ' +  str(l.data[0]) for li,l in enumerate(layer_losses)]) #loss of each layer
                     return loss
 
-
                 optimizer.step(closure)
 
             # display result
@@ -358,7 +353,6 @@ def st_content_to_style():
                         print('Update: Laplacian graph and Loss functions: %d' % (n_iter[0] + 1))
                     # k          print([loss_layers[li] + ': ' +  str(l.data[0]) for li,l in enumerate(layer_losses)]) #loss of each layer
                     return loss
-
 
                 optimizer.step(closure)
 

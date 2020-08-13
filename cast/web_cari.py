@@ -20,7 +20,7 @@ from random import sample
 import cv2
 import numpy as np
 import torch
-from utils.wct import whiten_and_color, warp_image, draw_key_points, whiten_and_color_mu
+from .utils.wct import whiten_and_color, warp_image, draw_key_points, whiten_and_color_mu
 
 
 def cat(input_dir: Path, web_cari_img: Path, random_train_nums, sample_num=3, rows=3, random_sample_times=2):
