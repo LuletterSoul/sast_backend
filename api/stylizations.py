@@ -27,16 +27,20 @@ image_upload.add_argument('file', location='files',
                           help='PNG or JPG file')
 
 image_stylization = reqparse.RequestParser()
-image_stylization.add_argument('content_id', type=str, required=True, help='Content image id.')
-image_stylization.add_argument('style_id', type=str, required=True, help='Style image id.')
-image_stylization.add_argument('alg', type=str, required=True, help='CAST | MAST')
-image_stylization.add_argument('content_mask', location='files',
-                               type=FileStorage, required=False,
+image_stylization.add_argument('content_id', type=str, required=True, location='json', help='Content image id.')
+image_stylization.add_argument('style_id', type=str, required=True, location='json', help='Style image id.')
+image_stylization.add_argument('alg', type=str, required=True, location='json', help='CAST | MAST')
+image_stylization.add_argument('width', type=str, required=True, location='json', help='Image width')
+image_stylization.add_argument('height', type=str, required=True, location='json', help='Image height')
+image_stylization.add_argument('content_mask', location='json',
+                               type=list, required=False,
                                help='PNG or JPG file')
-image_stylization.add_argument('style_mask', location='files',
-                               type=FileStorage, required=False,
+image_stylization.add_argument('style_mask', location='json',
+                               type=list, required=False,
                                help='PNG or JPG file')
 
+# image_stylization.add_argument('content_mask',type=list,location )
+# create_annotation.add_argument('keypoints', type=list, location='json', default=[])
 image_download = reqparse.RequestParser()
 image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
@@ -71,6 +75,8 @@ class Stylizations(Resource):
         args = image_stylization.parse_args()
         content_id = args['content_id']
         style_id = args['style_id']
+        width = args['width']
+        height = args['height']
         alg = args['alg']
 
         content_mask = args['content_mask']
@@ -129,7 +135,7 @@ class StylizationId(Resource):
         if not height:
             height = pil_image.size[0]
 
-        img_filename = f'{stylization_id}.png'
+        img_filename = f'{stylization_id}'
 
         pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()
