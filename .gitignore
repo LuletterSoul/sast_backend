@@ -128,3 +128,4 @@ dmypy.json
 .idea
 /cast/.idea
 /CAST/.idea
+.DS_Store
