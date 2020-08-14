@@ -1,3 +1,5 @@
+import uuid
+
 from flask_restplus import Namespace, Resource, reqparse
 from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
@@ -86,8 +88,11 @@ class Stylizations(Resource):
 
         # ...
         # execute MAST
+
+        req_id = str(uuid.uuid1())
         if alg == 'MAST':
             msg = {
+                'req_id': req_id,
                 'content_img_id': content_id,
                 'style_img_id': style_id,
                 'width': width,

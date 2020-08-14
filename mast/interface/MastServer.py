@@ -163,6 +163,7 @@ class MastServer(object):
             if not receive_queue.empty():
                 msg = receive_queue.get()
                 print(f'[Mast]: get msg from receive queue, start process...')
+                req_id = msg['req_id']
                 content_img_id = msg['content_img_id']
                 style_img_id = msg['style_img_id']
                 width = msg['width']
@@ -177,11 +178,12 @@ class MastServer(object):
                     t = time.time() - s
                     print(f'Consuming time {round(t, 4)}')
                     result_msg = {
-
+                        'req_id': req_id,
                         'content_img_id': content_img_id,
                         'style_img_id': style_img_id,
                         'stylized_img_id': stylized_img_id,
-                        'process_step': -1
+                        'process_step': -1,
+                        'status': 'success'
                     }
                     results_queue.put(result_msg)
                     print(f'[Mast]: result msg have put into results queue...')
@@ -189,9 +191,12 @@ class MastServer(object):
                     traceback.print_exc()
                     print(f'[Mast]: MAST exception: {e}')
                     stylization_id = f'{os.path.splitext(content_img_id)[0]}_{os.path.splitext(style_img_id)[0]}.png'
-                    body = {
-                        'content_id': content_img_id,
-                        'style_id': style_img_id,
-                        'stylization_id': stylization_id
+                    result_msg = {
+                        'req_id': req_id,
+                        'content_img_id': content_img_id,
+                        'style_img_id': style_img_id,
+                        'stylized_img_id': stylization_id,
+                        'process_step': -1,
+                        'status': 'failed'
                     }
-                    synthesis_failed(body)
+                    results_queue.put(result_msg)

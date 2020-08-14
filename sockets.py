@@ -10,7 +10,7 @@ from flask_socketio import (
 )
 from flask import Flask, render_template, request
 from config.config import Config
-
+import uuid
 from config import Config
 import eventlet
 
@@ -83,28 +83,37 @@ def synthesising(body):
     socketio.emit('onSynthesising', body, broadcast=True)
 
 
-def mast_report(msg, res_queue):
+def mast_report(req, res_queue):
     start_time = time.time()
-    c_basename = os.path.splitext(msg['content_img_id'])[0]
-    s_basename = os.path.splitext(msg['style_img_id'])[0]
+    c_basename = os.path.splitext(req['content_img_id'])[0]
+    s_basename = os.path.splitext(req['style_img_id'])[0]
     stylization_id = f'{c_basename}_{s_basename}.png'
+    req_id = req['req_id']
 
     while True:
         if not res_queue.empty():
             res_msg = res_queue.get()
-            body = {
-                'content_id': res_msg['content_img_id'],
-                'style_id': res_msg['style_img_id'],
-                'stylization_id': res_msg['stylized_img_id'],
-            }
-            synthesis_complete(body)
-            break
+            if req_id == res_msg['req_id']:
+                body = {
+                    'req_id': res_msg['req_id'],
+                    'content_id': res_msg['content_img_id'],
+                    'style_id': res_msg['style_img_id'],
+                    'stylization_id': res_msg['stylized_img_id']
+                }
+                if res_msg['status'] == 'success':
+                    synthesis_complete(body)
+                else:
+                    synthesis_failed(body)
+                break
+            else:
+                res_queue.put(res_msg)
         else:
             time.sleep(0.5)
             cost_time = time.time() - start_time
             body = {
-                'content_id': msg['content_img_id'],
-                'style_id': msg['style_img_id'],
+                'req_id': req_id,
+                'content_id': req['content_img_id'],
+                'style_id': req['style_img_id'],
                 'stylization_id': stylization_id,
                 'current_update_steps': -1,
                 'current_cost_time': cost_time,
@@ -114,3 +123,4 @@ def mast_report(msg, res_queue):
                 'total_update_steps': -1,
             }
             synthesising(body)
+        print(f'MASK report thread exit from request id {req_id}.')
