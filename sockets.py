@@ -27,6 +27,7 @@ socketio = SocketIO(async_mode='eventlet', cors_allowed_origins="*")
 def connect():
     sid = request.sid
     print(f'Socket connection created with {sid}')
+    emit('onConnected', {'sid': sid})
 
 
 @socketio.on('disconnect')
@@ -46,7 +47,7 @@ def synthesis_complete(body):
     :return:
     """
     print(f'notify fronted synthesis completely with body: {body}')
-    socketio.emit('onSynthesisCompleted', body, broadcast=True)
+    socketio.emit('onSynthesisCompleted', body)
 
 
 def synthesis_failed(body):
@@ -60,7 +61,7 @@ def synthesis_failed(body):
     :return:
     """
     print(f'notify fronted synthesis failed with body: {body}')
-    socketio.emit('onSynthesisFailed', body, broadcast=True)
+    socketio.emit('onSynthesisFailed', body)
 
 
 def synthesising(body):
@@ -80,7 +81,7 @@ def synthesising(body):
     :return:
     """
     print(f'notify fronted synthesis with body: {body}')
-    socketio.emit('onSynthesising', body, broadcast=True)
+    socketio.emit('onSynthesising', body)
 
 
 def mast_report(req, res_queue):
@@ -89,16 +90,19 @@ def mast_report(req, res_queue):
     s_basename = os.path.splitext(req['style_img_id'])[0]
     stylization_id = f'{c_basename}_{s_basename}.png'
     req_id = req['req_id']
+    sid = req['sid']
 
     while True:
         if not res_queue.empty():
             res_msg = res_queue.get()
             if req_id == res_msg['req_id']:
                 body = {
-                    'req_id': res_msg['req_id'],
+                    'sid': sid,
+                    'req_id': req_id,
                     'content_id': res_msg['content_img_id'],
                     'style_id': res_msg['style_img_id'],
-                    'stylization_id': res_msg['stylized_img_id']
+                    'stylization_id': res_msg['stylized_img_id'],
+                    'timestamp': time.time()
                 }
                 if res_msg['status'] == 'success':
                     synthesis_complete(body)
@@ -111,6 +115,7 @@ def mast_report(req, res_queue):
             time.sleep(0.5)
             cost_time = time.time() - start_time
             body = {
+                'sid': sid,
                 'req_id': req_id,
                 'content_id': req['content_img_id'],
                 'style_id': req['style_img_id'],
