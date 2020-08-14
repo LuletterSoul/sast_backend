@@ -149,7 +149,8 @@ class MAST(object):
             sf = self.pool(sf)
         return cf, sf
 
-    def cal_mask(self, c_mask, s_mask, cf_size, sf_size):
+    @staticmethod
+    def cal_mask(c_mask, s_mask, cf_size, sf_size):
         hc, wc = cf_size[2], cf_size[3]
         hs, ws = sf_size[2], sf_size[3]
         c_mask = cv.resize(c_mask, (hc, wc), cv.INTER_NEAREST)
@@ -190,6 +191,7 @@ class MAST(object):
         # print(f'ori_cf_size={ori_cf_size}, cf_size={cf_size}, ori_sf_size={ori_sf_size}, sf_size={sf_size}')
         if c_mask is not None and s_mask is not None:
             mask = self.cal_mask(c_mask, s_mask, cf_size, sf_size)
+            # print(f'[Mast]: use mask, mask_size={mask.size()}, mask_sum={torch.sum(mask)}')
         else:
             mask = None
 

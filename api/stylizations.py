@@ -81,6 +81,8 @@ class Stylizations(Resource):
 
         content_mask = args['content_mask']
         style_mask = args['style_mask']
+        # print(f'content_mask={content_mask}')
+        # print(f'style_mask={style_mask}')
 
         # ...
         # execute MAST

@@ -17,6 +17,7 @@ from ..libs.models import Encoder, Decoder
 from ..libs.MAST import MAST
 from ..libs.MastConfig import MastConfig
 from config.config import Config
+from sockets import synthesis_failed
 
 
 class MastServer(object):
@@ -75,8 +76,8 @@ class MastServer(object):
         """
         c_path = os.path.join(self.content_dir, content_img_id)
         s_path = os.path.join(self.style_dir, style_img_id)
-        print(c_path)
-        print(s_path)
+        # print(c_path)
+        # print(s_path)
         c_tensor = transforms.ToTensor()(Image.open(c_path).resize((width, height)).convert('RGB')).unsqueeze(0)
         s_tensor = transforms.ToTensor()(Image.open(s_path).resize((width, height)).convert('RGB')).unsqueeze(0)
         if self.cfg.type == 64:
@@ -104,8 +105,8 @@ class MastServer(object):
         height_offset = int(height / 2)
         for i in range(len(points_list)):
             for j in range(len(points_list[i])):
-                points_list[i][j][0] += width_offset
-                points_list[i][j][1] += height_offset
+                points_list[i][j][0] = int(points_list[i][j][0] + width_offset)
+                points_list[i][j][1] = int(points_list[i][j][1] + height_offset)
         return points_list
 
     def create_content_and_style_mask(self, width, height, content_mask_points_list, style_mask_points_list):
@@ -115,16 +116,18 @@ class MastServer(object):
         else:
             content_mask_points_list = self.convert_points(width, height, content_mask_points_list)
             style_mask_points_list = self.convert_points(width, height, style_mask_points_list)
+            # print(f'content_mask_points_list={content_mask_points_list}')
+            # print(f'style_mask_points_list={style_mask_points_list}')
             c_mask = np.zeros((height, width), dtype=np.uint8)
             s_mask = np.zeros((height, width), dtype=np.uint8)
             label = 1
             for c_mask_points in content_mask_points_list:
-                c_mask_points_array = np.array(c_mask_points)
+                c_mask_points_array = [np.array(c_mask_points)]
                 c_mask = cv.fillPoly(c_mask, c_mask_points_array, label)
                 label += 1
             label = 1
             for s_mask_points in style_mask_points_list:
-                s_mask_points_array = np.array(s_mask_points)
+                s_mask_points_array = [np.array(s_mask_points)]
                 s_mask = cv.fillPoly(s_mask, s_mask_points_array, label)
                 label += 1
         return c_mask, s_mask
@@ -185,3 +188,10 @@ class MastServer(object):
                 except Exception as e:
                     traceback.print_exc()
                     print(f'[Mast]: MAST exception: {e}')
+                    stylization_id = f'{os.path.splitext(content_img_id)[0]}_{os.path.splitext(style_img_id)[0]}.png'
+                    body = {
+                        'content_id': content_img_id,
+                        'style_id': style_img_id,
+                        'stylization_id': stylization_id
+                    }
+                    synthesis_failed(body)
