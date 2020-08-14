@@ -8,7 +8,7 @@ decoder_r21_path: 'trained_models/MAST_models/no_connection_models/dec_r21.pth'
 decoder_r31_path: 'trained_models/MAST_models/no_connection_models/dec_r31.pth'
 decoder_r41_path: 'trained_models/MAST_models/no_connection_models/dec_r41.pth'
 decoder_r51_path: 'trained_models/MAST_models/no_connection_models/dec_r51.pth'
-layers: 'r41'
+layers: 'r41,r31,r21'
 orth_constraint: false
 post_smoothing: false
 fast: false
@@ -21,5 +21,5 @@ patch_size: 1
 style_weight: 0.6
 reduce_dim_type: 'avg_pool'
 dist_type: 'cosine'
-dim_thresh: 128
+dim_thresh: 64
 

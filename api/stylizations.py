@@ -30,8 +30,8 @@ image_stylization = reqparse.RequestParser()
 image_stylization.add_argument('content_id', type=str, required=True, location='json', help='Content image id.')
 image_stylization.add_argument('style_id', type=str, required=True, location='json', help='Style image id.')
 image_stylization.add_argument('alg', type=str, required=True, location='json', help='CAST | MAST')
-image_stylization.add_argument('width', type=str, required=True, location='json', help='Image width')
-image_stylization.add_argument('height', type=str, required=True, location='json', help='Image height')
+image_stylization.add_argument('width', type=int, required=True, location='json', help='Image width')
+image_stylization.add_argument('height', type=int, required=True, location='json', help='Image height')
 image_stylization.add_argument('content_mask', location='json',
                                type=list, required=False,
                                help='PNG or JPG file')
@@ -94,7 +94,8 @@ class Stylizations(Resource):
                 'style_mask': style_mask
             }
             send_queue.put(msg)
-            threading.Thread(target=mast_report, args=(msg, res_queue,)).start()
+            # threading.Thread(target=mast_report, args=(msg, res_queue,)).start()
+            mast_report(msg, res_queue)
 
         # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400

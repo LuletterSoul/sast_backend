@@ -20,7 +20,7 @@ import logging
 
 logger = logging.getLogger('gunicorn.error')
 
-socketio = SocketIO(cors_allowed_origins="*")
+socketio = SocketIO(async_mode='eventlet', cors_allowed_origins="*")
 
 
 @socketio.on('connect')

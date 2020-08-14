@@ -1,4 +1,4 @@
-from multiprocessing import Queue
+from multiprocessing import Manager
 
-send_queue = Queue()
-res_queue = Queue()
+send_queue = Manager().Queue()
+res_queue = Manager().Queue()

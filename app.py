@@ -21,6 +21,9 @@ from api import blueprint as api
 from api.components import send_queue, res_queue
 from mast.interface.MastServer import MastServer
 from sockets import socketio
+import eventlet
+
+eventlet.monkey_patch(thread=False)
 
 
 def create_app():

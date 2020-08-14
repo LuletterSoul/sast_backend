@@ -9,6 +9,7 @@ from multiprocessing import Queue
 from PIL import Image
 import sys
 import time
+import traceback
 
 # sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../'))
 # sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../'))
@@ -74,6 +75,8 @@ class MastServer(object):
         """
         c_path = os.path.join(self.content_dir, content_img_id)
         s_path = os.path.join(self.style_dir, style_img_id)
+        print(c_path)
+        print(s_path)
         c_tensor = transforms.ToTensor()(Image.open(c_path).resize((width, height)).convert('RGB')).unsqueeze(0)
         s_tensor = transforms.ToTensor()(Image.open(s_path).resize((width, height)).convert('RGB')).unsqueeze(0)
         if self.cfg.type == 64:
@@ -166,8 +169,12 @@ class MastServer(object):
                 c_mask, s_mask = self.create_content_and_style_mask(width, height, content_mask_points_list,
                                                                     style_mask_points_list)
                 try:
+                    s = time.time()
                     stylized_img_id = self.process(content_img_id, style_img_id, width, height, c_mask, s_mask)
+                    t = time.time() - s
+                    print(f'Consuming time {round(t, 4)}')
                     result_msg = {
+
                         'content_img_id': content_img_id,
                         'style_img_id': style_img_id,
                         'stylized_img_id': stylized_img_id,
@@ -176,4 +183,5 @@ class MastServer(object):
                     results_queue.put(result_msg)
                     print(f'[Mast]: result msg have put into results queue...')
                 except Exception as e:
+                    traceback.print_exc()
                     print(f'[Mast]: MAST exception: {e}')
