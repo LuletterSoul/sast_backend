@@ -1,3 +1,4 @@
+import traceback
 import uuid
 
 from flask_restplus import Namespace, Resource, reqparse
@@ -10,7 +11,7 @@ from config import Config
 from PIL import Image
 import time
 import datetime
-from sockets import synthesis_complete, synthesising
+from sockets import synthesis_complete, synthesising, synthesis_failed
 import os
 import io
 from .components import send_queue, res_queue
@@ -106,8 +107,19 @@ class Stylizations(Resource):
             }
             send_queue.put(msg)
             # threading.Thread(target=mast_report, args=(msg, res_queue,)).start()
-            mast_report(msg, res_queue)
-
+            try:
+                mast_report(msg, res_queue)
+            except Exception as e:
+                traceback.print_exc()
+                body = {
+                    'sid': sid,
+                    'req_id': req_id,
+                    'content_id': content_id,
+                    'style_id': style_id,
+                    'stylization_id': -1,
+                    'timestamp': time.time()
+                }
+                synthesis_failed(body)
         # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400
 

@@ -1,5 +1,7 @@
 import time
 import os
+import traceback
+
 from flask import session
 from flask_socketio import (
     SocketIO,
@@ -93,8 +95,11 @@ def mast_report(req, res_queue):
     sid = req['sid']
 
     while True:
+        # try:
         if not res_queue.empty():
             res_msg = res_queue.get()
+            copy_res = res_msg.copy()
+            print(f'Request msg {res_msg}')
             if req_id == res_msg['req_id']:
                 body = {
                     'sid': sid,
@@ -110,7 +115,7 @@ def mast_report(req, res_queue):
                     synthesis_failed(body)
                 break
             else:
-                res_queue.put(res_msg)
+                res_queue.put(copy_res)
         else:
             time.sleep(0.5)
             cost_time = time.time() - start_time
@@ -129,3 +134,5 @@ def mast_report(req, res_queue):
             }
             synthesising(body)
         print(f'MASK report thread exit from request id {req_id}.')
+    # except Exception as e:
+    #     traceback.print_exc()
