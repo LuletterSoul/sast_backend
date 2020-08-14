@@ -96,7 +96,6 @@ class Annotation(Resource):
 @api.route('/<annotation_id>')
 class AnnotationId(Resource):
 
-    @login_required
     def get(self, annotation_id):
         """ Returns annotation by ID """
         # annotation = current_user.annotations.filter(id=annotation_id).first()
@@ -106,7 +105,6 @@ class AnnotationId(Resource):
 
         # return query_util.fix_ids(annotation)
 
-    @login_required
     def delete(self, annotation_id):
         """ Deletes an annotation by ID """
         annotation = current_user.annotations.filter(id=annotation_id).first()

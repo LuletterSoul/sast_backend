@@ -94,7 +94,8 @@ def mast_report(msg, res_queue):
                 'stylization_id': stylization_id,
                 'current_update_steps': -1,
                 'current_cost_time': cost_time,
-                'percent': cost_time / Config.MAST_TOTAL_TIME,  # 1 represent 'COMPLETE',otherwise it is 'SYNTHESISING',
+                'percent': round(cost_time / Config.MAST_TOTAL_TIME * 100, 1),
+                # 1 represent 'COMPLETE',otherwise it is 'SYNTHESISING',
                 'total_time': Config.MAST_TOTAL_TIME,
                 'total_update_steps': -1,
             }

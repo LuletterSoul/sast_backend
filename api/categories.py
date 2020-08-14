@@ -96,7 +96,6 @@ class Category(Resource):
 @api.route('/<int:category_id>')
 class Category(Resource):
 
-    @login_required
     def get(self, category_id):
         """ Returns a category by ID """
         # category = current_user.categories.filter(id=category_id).first()
@@ -108,7 +107,6 @@ class Category(Resource):
         # return query_util.fix_ids(category)
         return category
 
-    @login_required
     def delete(self, category_id):
         """ Deletes a category by ID """
         category = current_user.categories.filter(id=category_id).first()
@@ -123,7 +121,6 @@ class Category(Resource):
         return {'success': True}
 
     @api.expect(update_category)
-    @login_required
     def put(self, category_id):
         """ Updates a category name by ID """
 
@@ -186,7 +183,6 @@ class Category(Resource):
 class CategoriesData(Resource):
 
     @api.expect(page_data)
-    @login_required
     def get(self):
         """ Endpoint called by category viewer client """
         pass
