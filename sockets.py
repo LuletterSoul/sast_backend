@@ -49,6 +49,20 @@ def synthesis_complete(body):
     socketio.emit('onSynthesisCompleted', body, broadcast=True)
 
 
+def synthesis_failed(body):
+    """
+    notify frontend that a stylization image is obtainable.
+    :param body: {
+            'content_id': content_id,
+            'style_id': style_id,
+            'stylization_id': stylization_id,
+        }
+    :return:
+    """
+    print(f'notify fronted synthesis failed with body: {body}')
+    socketio.emit('onSynthesisFailed', body, broadcast=True)
+
+
 def synthesising(body):
     """
     notify frontend with current synthesis progress.
