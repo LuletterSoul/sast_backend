@@ -1,15 +1,21 @@
-from flask_restx import Namespace, Resource, reqparse
+from flask_restplus import Namespace, Resource, reqparse
 from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
 from flask import send_file
-
+from multiprocessing import Process
+import threading
 from config import Config
 from PIL import Image
+import time
 import datetime
+from sockets import synthesis_complete, synthesising, cast_report
 import os
 import io
+from .components import send_queue, res_queue, res_queue1, send_queue1
+from sockets import mast_report
 
 api = Namespace('stylizations', description='Stylizations related operations')
+os.makedirs(Config.STYLIZATION_DIRECTORY, exist_ok=True)
 
 image_all = reqparse.RequestParser()
 image_all.add_argument('page', default=1, type=int)
@@ -21,10 +27,21 @@ image_upload.add_argument('file', location='files',
                           help='PNG or JPG file')
 
 image_stylization = reqparse.RequestParser()
-image_stylization.add_argument('content_id', type=str, required=True, help='Content image id.')
-image_stylization.add_argument('stylization_id', type=str, required=True, help='Style image id.')
-image_stylization.add_argument('alg', type=str, required=True, help='CAST | MAST')
-
+image_stylization.add_argument('content_id', type=str, required=True, location='json', help='Content image id.')
+image_stylization.add_argument('style_id', type=str, required=True, location='json', help='Style image id.')
+image_stylization.add_argument('alg', type=str, required=True, location='json', help='CAST | MAST')
+image_stylization.add_argument('width', type=str, required=True, location='json', help='Image width')
+image_stylization.add_argument('height', type=str, required=True, location='json', help='Image height')
+image_stylization.add_argument('content_mask', location='json',
+                               type=list, required=False,
+                               help='PNG or JPG file')
+image_stylization.add_argument('style_mask', location='json',
+                               type=list, required=False,
+                               help='PNG or JPG file')
+image_stylization.add_argument('content_landmark', type=str, required=True, location='json', help='Content image landmark id.')
+image_stylization.add_argument('style_landmark', type=str, required=True, location='json', help='Style image landmark id.')
+# image_stylization.add_argument('content_mask',type=list,location )
+# create_annotation.add_argument('keypoints', type=list, location='json', default=[])
 image_download = reqparse.RequestParser()
 image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
@@ -59,14 +76,37 @@ class Stylizations(Resource):
         args = image_stylization.parse_args()
         content_id = args['content_id']
         style_id = args['style_id']
+        width = args['width']
+        height = args['height']
         alg = args['alg']
 
-        content_path = os.path.join(Config.CONTENT_DIRECTORY, content_id)
+        content_mask = args['content_mask']
+        style_mask = args['style_mask']
+
+        content_landmark = args['content_landmark']
+        style_landmark = args['style_landmark']
         # ...
         # execute MAST
         if alg == 'MAST':
-            pass
-
+            msg = {
+                'content_img_id': content_id,
+                'style_img_id': style_id,
+                'width': width,
+                'height': height,
+                'content_mask': content_mask,
+                'style_mask': style_mask
+            }
+            send_queue.put(msg)
+            threading.Thread(target=mast_report, args=(msg, res_queue,)).start()
+        if alg == 'CAST':
+            msg = {
+                'content_img_id': content_id,
+                'style_img_id': style_id,
+                'content_landmark': content_landmark,
+                'style_landmark': style_landmark
+            }
+            send_queue1.put(msg)
+            threading.Thread(target=cast_report, args=(msg, res_queue1,)).start()
         # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400
 
@@ -76,7 +116,12 @@ class Stylizations(Resource):
         #
         # image.close()
         # pil_image.close()
-        pass
+        # synthesis_complete({
+        #     'content_id': content_id,
+        #     'style_id': style_id,
+        #     'stylization_id': 'test.png',
+        # })
+        return
 
 
 @api.route('/<stylization_id>')
@@ -91,7 +136,7 @@ class StylizationId(Resource):
         # Here style image should be loaded from corresponding directory.
         # image = None
         #
-        pil_image = Image.open(os.path.join(Config.CONTENT_DIRECTORY, f'{stylization_id}'))
+        pil_image = Image.open(os.path.join(Config.STYLIZATION_DIRECTORY, f'{stylization_id}'))
 
         if pil_image is None:
             return {'success': False}, 400
@@ -105,7 +150,7 @@ class StylizationId(Resource):
         if not height:
             height = pil_image.size[0]
 
-        img_filename = f'{stylization_id}.png'
+        img_filename = f'{stylization_id}'
 
         pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()

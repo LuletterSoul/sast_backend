@@ -1,4 +1,4 @@
-from flask_restx import Namespace, Resource, reqparse
+from flask_restplus import Namespace, Resource, reqparse
 from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
 from flask import send_file
@@ -97,7 +97,7 @@ class ContentId(Resource):
         if not height:
             height = pil_image.size[0]
 
-        img_filename = f'{content_id}.png'
+        img_filename = f'{content_id}'
 
         pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()

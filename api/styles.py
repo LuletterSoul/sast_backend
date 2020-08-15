@@ -1,4 +1,4 @@
-from flask_restx import Namespace, Resource, reqparse
+from flask_restplus import Namespace, Resource, reqparse
 from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
 from flask import send_file
@@ -83,7 +83,7 @@ class StyleId(Resource):
         # Here style image should be loaded from corresponding directory.
         # image = None
         #
-        pil_image = Image.open(os.path.join(Config.CONTENT_DIRECTORY, f'{style_id}'))
+        pil_image = Image.open(os.path.join(Config.STYLE_DIRECTORY, f'{style_id}'))
 
         if pil_image is None:
             return {'success': False}, 400
@@ -97,7 +97,7 @@ class StyleId(Resource):
         if not height:
             height = pil_image.size[0]
 
-        img_filename = f'{style_id}.png'
+        img_filename = f'{style_id}'
 
         pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()
