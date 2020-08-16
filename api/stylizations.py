@@ -1,21 +1,14 @@
-import traceback
+import io
+import os
 import uuid
 
-from flask_restplus import Namespace, Resource, reqparse
-from flask_login import login_required, current_user
-from werkzeug.datastructures import FileStorage
-from flask import send_file
-from multiprocessing import Process
-import threading
-from config import Config
 from PIL import Image
-import time
-import datetime
-from sockets import synthesis_complete, synthesising, synthesis_failed
-import os
-import io
-from .components import send_queue, res_queue
-from sockets import mast_report
+from flask import send_file
+from flask_restplus import Namespace, Resource, reqparse
+from werkzeug.datastructures import FileStorage
+from workers import mast_report
+
+from config import Config
 
 api = Namespace('stylizations', description='Stylizations related operations')
 os.makedirs(Config.STYLIZATION_DIRECTORY, exist_ok=True)
@@ -50,6 +43,10 @@ image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
 image_download.add_argument('height', type=int, default=512)
 image_download.add_argument('timestamp', type=str, default='')
+
+from workers import RedisStreamer
+
+mast_streamer = RedisStreamer(redis_broker=Config.REDIS_BROKER_URL, prefix='mast')
 
 
 @api.route('/')
@@ -95,32 +92,38 @@ class Stylizations(Resource):
 
         req_id = str(uuid.uuid1())
         if alg == 'MAST':
-            msg = {
+            msg = [{
                 'sid': sid,
                 'req_id': req_id,
-                'content_img_id': content_id,
-                'style_img_id': style_id,
+                'content_id': content_id,
+                'style_id': style_id,
                 'width': width,
                 'height': height,
                 'content_mask': content_mask,
                 'style_mask': style_mask
-            }
-            send_queue.put(msg)
+            }]
+
+            # res = mast_streamer.predict(msg)
+            # print(f'Mast stylization result:{res}')
+            # return res
+            mast_streamer.submit(msg)
+
+            # send_queue.put(msg)
             # threading.Thread(target=mast_report, args=(msg, res_queue,)).start()
-            try:
-                mast_report(msg, res_queue)
-            except Exception as e:
-                traceback.print_exc()
-                body = {
-                    'sid': sid,
-                    'req_id': req_id,
-                    'content_id': content_id,
-                    'style_id': style_id,
-                    'stylization_id': -1,
-                    'timestamp': time.time()
-                }
-                synthesis_failed(body)
-        # if os.path.exists(path):
+        #     try:
+        #         mast_report(msg, res_queue)
+        #     except Exception as e:
+        #         traceback.print_exc()
+        #         body = {
+        #             'sid': sid,
+        #             'req_id': req_id,
+        #             'content_id': content_id,
+        #             'style_id': style_id,
+        #             'stylization_id': -1,
+        #             'timestamp': time.time()
+        #         }
+        #         synthesis_failed(body)
+        # # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400
 
         # pil_image = Image.open(io.BytesIO(image.read()))

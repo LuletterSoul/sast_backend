@@ -11,19 +11,18 @@
 @descwerkzeug:
 """
 import argparse
-from multiprocessing import Process
 
+import eventlet
+
+eventlet.monkey_patch()
 from flask import Flask
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from api import blueprint as api
-from api.components import send_queue, res_queue
-from mast.interface.MastServer import MastServer
+from config import Config
 from sockets import socketio
-import eventlet
-
-eventlet.monkey_patch(thread=False)
+from workers import create_mast_worker
 
 
 def create_app():
@@ -34,7 +33,7 @@ def create_app():
     # mount all blueprints from api module.
     flask.wsgi_app = ProxyFix(flask.wsgi_app)
     flask.register_blueprint(api)
-    socketio.init_app(flask)
+    socketio.init_app(flask, message_queue=Config.REDIS_SOCKET_URL, cors_allowed_origins="*")
     CORS(flask)
     return flask
 
@@ -47,10 +46,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    mast_server = MastServer()
-    Process(target=mast_server.run, args=(send_queue, res_queue,)).start()
+    # mast_server = MastServer()
+    # Process(target=mast_server.run, args=(send_queue, res_queue,)).start()
+
     app = create_app()
+    mast_worker_handler, mast_destroy = create_mast_worker()
     socketio.run(app=app, host=args.host, port=args.port, debug=args.debug)
+    mast_destroy.set()
+    mast_worker_handler.join()
 
     # logger = logging.getLogger('gunicorn.error')
     # app.logger.handlers = logger.handlers

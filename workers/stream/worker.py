@@ -505,11 +505,12 @@ def run_redis_workers_forever(model_class, batch_size, max_latency=0.1,
 class _RedisAgent(object):
     def __init__(self, redis_id, redis_broker='localhost:6379', prefix=''):
         self._redis_id = redis_id
-        self._redis_host = redis_broker.split(":")[0]
-        self._redis_port = int(redis_broker.split(":")[1])
+        # self._redis_host = redis_broker.split(":")[0]
+        # self._redis_port = int(redis_broker.split(":")[1])
         self._redis_request_queue_name = "request_queue" + prefix
         self._redis_response_pb_prefix = "response_pb_" + prefix
-        self._redis = Redis(host=self._redis_host, port=self._redis_port)
+        # self._redis = Redis(host=self._redis_host, port=self._redis_port)
+        self._redis = Redis.from_url(url=redis_broker)
         self._response_pb = self._redis.pubsub(ignore_subscribe_messages=True)
         self._setup()
 

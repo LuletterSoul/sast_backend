@@ -1,41 +1,50 @@
-import time
 import os
-import traceback
+import time
 
-from flask import session
+from flask import request
 from flask_socketio import (
     SocketIO,
-    disconnect,
-    join_room,
-    leave_room,
-    emit, Namespace
+    emit, join_room, leave_room
 )
-from flask import Flask, render_template, request
-from config.config import Config
-import uuid
-from config import Config
-import eventlet
 
-eventlet.monkey_patch(thread=False)
+from config import Config
 
 import logging
 
 logger = logging.getLogger('gunicorn.error')
 
-socketio = SocketIO(async_mode='eventlet', cors_allowed_origins="*")
+
+def create_socket():
+    return SocketIO(async_mode='eventlet', message_queue=Config.REDIS_SOCKET_URL, cors_allowed_origins="*")
+
+
+# def create_app_socket(app):
+#     return SocketIO(app=app, async_mode='eventlet', message_queue=Config.REDIS_SOCKET_URL, cors_allowed_origins="*")
+
+
+socketio = SocketIO()
 
 
 @socketio.on('connect')
 def connect():
     sid = request.sid
+    join_room(sid)
+    # print(f'Socket connection created with ')
     print(f'Socket connection created with {sid}')
-    emit('onConnected', {'sid': sid})
+    emit('onConnected', {'sid': sid}, room=sid)
 
 
 @socketio.on('disconnect')
 def disconnect():
     sid = request.sid
+    leave_room(sid)
     print(f'Socket disconnected from {sid}')
+
+
+@socketio.on_error()
+def error():
+    sid = request.sid
+    print(f'Socket error from {sid}')
 
 
 def synthesis_complete(body):
@@ -49,7 +58,9 @@ def synthesis_complete(body):
     :return:
     """
     print(f'notify fronted synthesis completely with body: {body}')
-    socketio.emit('onSynthesisCompleted', body)
+    socket_connection = create_socket()
+    socket_connection.emit('onSynthesisCompleted', body, broadcast=True, room=body['sid'])
+    # socketio.emit('onSynthesisCompleted', body)
 
 
 def synthesis_failed(body):
@@ -63,7 +74,9 @@ def synthesis_failed(body):
     :return:
     """
     print(f'notify fronted synthesis failed with body: {body}')
-    socketio.emit('onSynthesisFailed', body)
+    socket_connection = create_socket()
+    socket_connection.emit('onSynthesisFailed', body, room=body['sid'])
+    # socketio.emit('onSynthesisFailed', body, broadcast=True)
 
 
 def synthesising(body):
@@ -83,7 +96,9 @@ def synthesising(body):
     :return:
     """
     print(f'notify fronted synthesis with body: {body}')
-    socketio.emit('onSynthesising', body)
+    socket_connection = create_socket()
+    socket_connection.emit('onSynthesising', body, room=body['sid'])
+    # socketio.emit('onSynthesising', body, broadcast=True)
 
 
 def mast_report(req, res_queue):

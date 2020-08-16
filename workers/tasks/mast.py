@@ -11,6 +11,8 @@
 @desc:
 """
 import os
+import threading
+
 import torch
 import time
 import traceback
@@ -24,14 +26,12 @@ from celery import shared_task
 from torchvision import transforms
 from torchvision.utils import save_image
 
+from config import Config
 from mast.libs.MAST import MAST
+from mast.libs.MastConfig import MastConfig
 from mast.libs.models import Encoder, Decoder
-from workers.stream import ManagedModel
-
-
-@shared_task()
-def mast_service():
-    pass
+from sockets import synthesis_complete, synthesis_failed, synthesising
+from workers.stream import ManagedModel, run_redis_workers_forever, mp
 
 
 class MastModel(ManagedModel):
@@ -106,6 +106,7 @@ class MastModel(ManagedModel):
         import torch
         c_path = os.path.join(self.content_dir, content_img_id)
         s_path = os.path.join(self.style_dir, style_img_id)
+
         # print(c_path)
         # print(s_path)
         c_tensor = transforms.ToTensor()(Image.open(c_path).resize((width, height)).convert('RGB')).unsqueeze(0)
@@ -164,42 +165,89 @@ class MastModel(ManagedModel):
 
     def predict(self, msg):
         print(f'[Mast]: get msg {msg} from receive queue, start process...')
-        req_id = msg.get('req_id')
-        content_img_id = msg.get('content_id')
-        style_img_id = msg.get('style_id')
+        # mast_report.delay(msg)
+        report_result = mast_report.apply_async(args=(msg,))
+        content_id = msg.get('content_id')
+        style_id = msg.get('style_id')
         width = msg.get('width')
         height = msg.get('height')
         content_mask_points_list = msg.get('content_mask')
         style_mask_points_list = msg.get('style_mask')
         c_mask, s_mask = self.create_content_and_style_mask(width, height, content_mask_points_list,
                                                             style_mask_points_list)
+
+        stylization_id = f'{os.path.splitext(content_id)[0]}_{os.path.splitext(style_id)[0]}.png'
+        msg['stylization_id'] = stylization_id
+        msg['timestamp'] = time.time()
         try:
             s = time.time()
-            stylized_img_id = self.process(content_img_id, style_img_id, width, height, c_mask, s_mask)
+            self.process(content_id, style_id, width, height, c_mask, s_mask)
             t = time.time() - s
             print(f'Consuming time {round(t, 4)}')
-            result_msg = {
-                'req_id': req_id,
-                'content_img_id': content_img_id,
-                'style_img_id': style_img_id,
-                'stylized_img_id': stylized_img_id,
-                'process_step': -1,
-                'status': 'success'
-            }
-            # results_queue.put(result_msg)
+            msg['status'] = 'success'
+            synthesis_complete(msg)
             print(f'[Mast]: result msg have put into results queue...')
-            return result_msg
+            return msg
         except Exception as e:
             traceback.print_exc()
             print(f'[Mast]: MAST exception: {e}')
-            stylization_id = f'{os.path.splitext(content_img_id)[0]}_{os.path.splitext(style_img_id)[0]}.png'
-            result_msg = {
-                'req_id': req_id,
-                'content_img_id': content_img_id,
-                'style_img_id': style_img_id,
-                'stylized_img_id': stylization_id,
-                'process_step': -1,
-                'status': 'failed'
-            }
-            return result_msg
-            # results_queue.put(result_msg)
+            msg['status'] = 'failed'
+            synthesis_failed(msg)
+            return msg
+        finally:
+            report_result.revoke(terminate=True)
+
+
+def create_mast_worker():
+    root = Config.MAST_WORK_DIR
+    cfg = MastConfig(os.path.join(root, f'configs/MAST_Configs.yml'))
+    content_dir = Config.CONTENT_DIRECTORY
+    style_dir = Config.STYLE_DIRECTORY
+    stylized_dir = Config.STYLIZATION_DIRECTORY
+    os.makedirs(content_dir, exist_ok=True)
+    os.makedirs(style_dir, exist_ok=True)
+    os.makedirs(stylized_dir, exist_ok=True)
+    model_init_args = (root, cfg, content_dir, style_dir, stylized_dir,)
+    destroy_event = mp.Event()
+    # batch_size = Config.MAST_BATCH_SIZE
+    # worker_num = Config.MAST_WORKER_NUM
+    thread = threading.Thread(target=run_redis_workers_forever, args=(MastModel
+                                                                      , Config.MAST_BATCH_SIZE, 0.1,
+                                                                      Config.MAST_WORKER_NUM, [0, 1, 2, 3],
+                                                                      Config.REDIS_BROKER_URL, Config.MAST_CHANNEL,
+                                                                      model_init_args, None, destroy_event,),
+                              daemon=True)
+    thread.start()
+    return thread, destroy_event
+
+
+@shared_task()
+def mast_report(req):
+    start_time = time.time()
+    c_basename = os.path.splitext(req['content_id'])[0]
+    s_basename = os.path.splitext(req['style_id'])[0]
+    stylization_id = f'{c_basename}_{s_basename}.png'
+    req_id = req['req_id']
+    sid = req['sid']
+    while True:
+        # if event.is_set():
+        # break
+        time.sleep(0.1)
+        cost_time = time.time() - start_time
+        body = {
+            'sid': sid,
+            'req_id': req_id,
+            'content_id': req['content_id'],
+            'style_id': req['style_id'],
+            'stylization_id': stylization_id,
+            'current_update_steps': -1,
+            'current_cost_time': cost_time,
+            'percent': round(cost_time / Config.MAST_TOTAL_TIME * 100, 1),
+            # 1 represent 'COMPLETE',otherwise it is 'SYNTHESISING',
+            'total_time': Config.MAST_TOTAL_TIME,
+            'total_update_steps': -1,
+        }
+        synthesising(body)
+    print(f'MASK report thread exit from request id {req_id}.')
+# except Exception as e:
+#     traceback.print_exc()
