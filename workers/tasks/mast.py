@@ -94,7 +94,7 @@ class MastModel(ManagedModel):
             self.decoders[layer_name] = decoder
         print(f'[Mast]: Load models completely!')
 
-    def process(self, content_img_id, style_img_id, width, height, c_mask, s_mask):
+    def process(self, content_img_id, style_img_id, width, height, c_mask, s_mask, category=''):
         """
         :param content_img_id: 内容图id,带后缀
         :param style_img_id: 风格图id,带后缀
@@ -105,8 +105,8 @@ class MastModel(ManagedModel):
         :return: 风格化图片id,带后缀
         """
         import torch
-        c_path = os.path.join(self.content_dir, content_img_id)
-        s_path = os.path.join(self.style_dir, style_img_id)
+        c_path = os.path.join(self.content_dir, category, content_img_id)
+        s_path = os.path.join(self.style_dir, category, style_img_id)
 
         # print(c_path)
         # print(s_path)
@@ -174,6 +174,7 @@ class MastModel(ManagedModel):
         height = msg.get('height')
         content_mask_points_list = msg.get('content_mask')
         style_mask_points_list = msg.get('style_mask')
+        category = msg.get('category')
         c_mask, s_mask = self.create_content_and_style_mask(width, height, content_mask_points_list,
                                                             style_mask_points_list)
 
@@ -182,7 +183,7 @@ class MastModel(ManagedModel):
         msg['timestamp'] = time.time()
         try:
             s = time.time()
-            self.process(content_id, style_id, width, height, c_mask, s_mask)
+            self.process(content_id, style_id, width, height, c_mask, s_mask, category)
             t = time.time() - s
             print(f'Consuming time {round(t, 4)}')
             msg['status'] = 'success'

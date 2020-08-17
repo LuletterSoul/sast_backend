@@ -118,13 +118,13 @@ def warp_interplation_from_datasets(web_cari_path: Path, train_photo_num, train_
 
 def warp_interplation_from_images(content_id, style_id, images_path: Path, train_photo_num, train_cari_num,
                                   test_photo_num, test_cari_num, output_path,
-                                  fmt='.jpg', web_test_photo_path=None, web_test_cari_path=None):
+                                  fmt='.jpg', web_test_photo_path=None, web_test_cari_path=None, category=''):
     # images_path = images
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     Path(output_path).mkdir(exist_ok=True, parents=True)
 
-    test_photo_paths = [os.path.join(Config.CONTENT_DIRECTORY, content_id)]
-    test_cari_paths = [os.path.join(Config.STYLE_DIRECTORY, style_id)]
+    test_photo_paths = [os.path.join(Config.CONTENT_DIRECTORY, category, content_id)]
+    test_cari_paths = [os.path.join(Config.STYLE_DIRECTORY, category, style_id)]
     landmarks_path = Path(Config.LANDMARK_DIRECTORY)
     output_path = Config.CONTENT_DIRECTORY
     for idx, photo_path in enumerate(test_photo_paths):
@@ -240,10 +240,10 @@ def warp_content_to_style_datasets(photo_content='datasets/WebCari_512/img/Adele
 
 
 def warp_content_to_style_images(content_id, style_id, photo_content='images/content/content.jpg'
-                                 , caricature_style='images/style/style.jpg'):
+                                 , caricature_style='images/style/style.jpg',category=''):
     images_path = Path('images')
     # warp_interplation(web_cari_path, 10, 10, 1, 1, f'output/{generate_time_stamp()}')
     return warp_interplation_from_images(content_id, style_id, images_path, 10, 10, 1, 1, f'images/content',
                                          web_test_photo_path=photo_content,
-                                         web_test_cari_path=caricature_style)
+                                         web_test_cari_path=caricature_style,category=category)
     # 上面最后两个参数分别为content（photo）图和style（caricature）图

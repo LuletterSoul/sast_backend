@@ -27,6 +27,7 @@ image_download = reqparse.RequestParser()
 image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
 image_download.add_argument('height', type=int, default=512)
+image_download.add_argument('category', default='', type=str, required=False)
 
 
 @api.route('/')
@@ -64,8 +65,10 @@ class Styles(Resource):
         """ Creates an image """
         args = image_upload.parse_args()
         image = args['file']
+        category = args['category']
 
         directory = Config.STYLE_DIRECTORY
+
         path = os.path.join(directory, image.filename)
 
         # if os.path.exists(path):
@@ -88,11 +91,18 @@ class StyleId(Resource):
         """ Returns category by ID """
         args = image_download.parse_args()
         as_attachment = args.get('asAttachment')
+        category = args.get('category')
 
         # Here style image should be loaded from corresponding directory.
         # image = None
         #
-        pil_image = Image.open(os.path.join(Config.STYLE_DIRECTORY, f'{style_id}'))
+
+        path = os.path.join(Config.STYLE_DIRECTORY, category, f'{style_id}')
+
+        if not os.path.exists(path):
+            return
+
+        pil_image = Image.open(path)
 
         if pil_image is None:
             return {'success': False}, 400

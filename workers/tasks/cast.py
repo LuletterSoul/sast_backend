@@ -208,12 +208,13 @@ class CastModel(ManagedModel):
     def predict(self, msg):
         content_id = msg.get('content_id')
         style_id = msg.get('style_id')
+        category = msg.get('category')
 
         # warped image will be saved in content directory as input of stylization
-        warped_id = warp_content_to_style_images(content_id, style_id)
+        warped_id = warp_content_to_style_images(content_id, style_id, category=category)
 
         # related image output directory
-        style_path = os.path.join(Config.STYLE_DIRECTORY, style_id)
+        style_path = os.path.join(Config.STYLE_DIRECTORY, category, style_id)
         content_path = os.path.join(Config.CONTENT_DIRECTORY, warped_id)
         stylization_id = compose_prefix_id(content_id, style_id)
         output_path = os.path.join(Config.STYLIZATION_DIRECTORY, stylization_id)

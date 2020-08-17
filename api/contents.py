@@ -28,6 +28,7 @@ image_download = reqparse.RequestParser()
 image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
 image_download.add_argument('height', type=int, default=512)
+image_download.add_argument('category', default='', type=str, required=False)
 
 
 @api.route('/')
@@ -87,11 +88,15 @@ class ContentId(Resource):
         """ Returns category by ID """
         args = image_download.parse_args()
         as_attachment = args.get('asAttachment')
+        category = args.get('category')
 
         # Here content image should be loaded from corresponding directory.
         # image = None
         #
-        pil_image = Image.open(os.path.join(Config.CONTENT_DIRECTORY, f'{content_id}'))
+        path = os.path.join(Config.CONTENT_DIRECTORY, category, f'{content_id}')
+        if not os.path.exists(path):
+            return
+        pil_image = Image.open(path)
 
         if pil_image is None:
             return {'success': False}, 400

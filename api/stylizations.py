@@ -36,6 +36,8 @@ image_stylization.add_argument('style_mask', location='json',
                                type=list, required=False,
                                help='PNG or JPG file')
 
+image_stylization.add_argument('category', default='', type=str, required=False)
+
 # image_stylization.add_argument('content_mask',type=list,location )
 # create_annotation.add_argument('keypoints', type=list, location='json', default=[])
 image_download = reqparse.RequestParser()
@@ -43,7 +45,7 @@ image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
 image_download.add_argument('height', type=int, default=512)
 image_download.add_argument('timestamp', type=str, default='')
-image_download.add_argument('category', type=str, default=None)
+image_download.add_argument('category', type=str, default='')
 
 from workers import RedisStreamer
 
@@ -83,6 +85,7 @@ class Stylizations(Resource):
         height = args['height']
         alg = args['alg']
         sid = args['sid']
+        category = args['category']
 
         content_mask = args['content_mask']
         style_mask = args['style_mask']
@@ -101,7 +104,8 @@ class Stylizations(Resource):
             'width': width,
             'height': height,
             'content_mask': content_mask,
-            'style_mask': style_mask
+            'style_mask': style_mask,
+            'category': category
         }]
         if alg == 'MAST':
             mast_streamer.submit(msg)
@@ -153,5 +157,3 @@ class StylizationId(Resource):
         # image must be resized by previous width and height
         # and I/O pipe must be built for bytes transmission between backend and client end
         return send_file(image_io, attachment_filename=img_filename, as_attachment=as_attachment)
-
-
