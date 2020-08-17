@@ -16,7 +16,7 @@ import eventlet
 
 from workers.tasks.cast import create_cast_worker
 
-eventlet.monkey_patch()
+eventlet.monkey_patch(os=False, thread=False)
 from flask import Flask
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix

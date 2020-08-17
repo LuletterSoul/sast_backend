@@ -19,7 +19,7 @@ import traceback
 import cv2
 
 from cast.cast import warp_content_to_style_images
-from utils.utils import compose_prefix_id, construct_cast_msg, get_prefix, compose_prefix
+from utils.utils import compose_prefix_id, construct_cast_msg, get_prefix, compose_prefix, parse_devices
 
 model_dir = os.getcwd() + '/models/'
 
@@ -116,7 +116,6 @@ class DefaultCastConfig:
 
 args = DefaultCastConfig()
 
-print(args.save_dir)
 save_dir = Path(args.save_dir)
 save_dir.mkdir(exist_ok=True, parents=True)
 
@@ -463,11 +462,12 @@ class CastModel(ManagedModel):
 def create_cast_worker():
     model_init_args = ()
     destroy_event = mp.Event()
+    devices = parse_devices(Config.CAST_DEVICES)
     # batch_size = Config.MAST_BATCH_SIZE
     # worker_num = Config.MAST_WORKER_NUM
     thread = threading.Thread(target=run_redis_workers_forever, args=(CastModel
                                                                       , Config.CAST_BATCH_SIZE, 0.1,
-                                                                      Config.CAST_WORKER_NUM, [0, 1, 2, 3],
+                                                                      Config.CAST_WORKER_NUM, devices,
                                                                       Config.REDIS_BROKER_URL, Config.CAST_CHANNEL,
                                                                       model_init_args, None, destroy_event,),
                               daemon=True)

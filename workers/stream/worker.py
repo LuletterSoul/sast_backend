@@ -25,7 +25,6 @@ import weakref
 from queue import Queue, Empty
 from typing import List
 
-from service_streamer import service_streamer
 from redis import Redis
 
 TIMEOUT = 1

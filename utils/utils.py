@@ -62,3 +62,12 @@ def construct_cast_msg(msg, stylization_id, current_update_steps, current_cost_t
         'timestamp': time.time(),
         'category': category,
     }
+
+
+def parse_devices(device_string):
+    """
+    device string format as '0,1,2,3...'
+    :param device_string:
+    :return:
+    """
+    return [int(d) for d in device_string.split(',')]

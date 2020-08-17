@@ -12,6 +12,7 @@
 """
 import os
 import time
+import uuid
 from pathlib import Path
 from random import sample
 
@@ -153,7 +154,7 @@ def warp_interplation_from_images(content_id, style_id, images_path: Path, train
         # output = [face, cari_1, warped_1]
         output = [warped_1]
         output = np.hstack(output)
-        warped_content_id = f'{get_prefix(content_id)}-{get_prefix(style_id)}_warped.png'
+        warped_content_id = f'{get_prefix(content_id)}-{get_prefix(style_id)}_{str(uuid.uuid1())}.png'
         cv2.imwrite(f'{output_path}/{warped_content_id}', output)
         # cv2.imwrite('images/style/style.jpg', cari_1)
         return warped_content_id
