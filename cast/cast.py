@@ -10,9 +10,7 @@
 @version 1.0
 @desc:
 """
-import multiprocessing as mp
 import os
-import shutil
 import time
 from pathlib import Path
 from random import sample
@@ -20,11 +18,15 @@ from random import sample
 import cv2
 import numpy as np
 import torch
-from utils.wct import whiten_and_color, warp_image, draw_key_points, whiten_and_color_mu
+
+from config import Config
+from .utils import whiten_and_color, warp_image
+from utils import *
+
 
 def warp_interplation_from_datasets(web_cari_path: Path, train_photo_num, train_cari_num,
-                      test_photo_num, test_cari_num, output_path,
-                      fmt='.jpg', web_test_photo_path=None, web_test_cari_path=None):
+                                    test_photo_num, test_cari_num, output_path,
+                                    fmt='.jpg', web_test_photo_path=None, web_test_cari_path=None):
     """
     形变线性插值实验
     :param web_cari_path:
@@ -80,6 +82,9 @@ def warp_interplation_from_datasets(web_cari_path: Path, train_photo_num, train_
     train_photo_num = len(train_face_paths)
     train_cari_num = len(train_cari_paths)
 
+    if train_photo_num == 0 or train_cari_num == 0:
+        raise Exception('Could not find any landmarks')
+
     for idx, photo_path in enumerate(test_photo_paths):
         if idx > len(test_photo_paths) - 1:
             break
@@ -109,23 +114,26 @@ def warp_interplation_from_datasets(web_cari_path: Path, train_photo_num, train_
         cv2.imwrite(f'{output_path}/content.jpg', output)
         cv2.imwrite('images/style/style.jpg', cari_1)
 
-def warp_interplation_from_images(images_path: Path, train_photo_num, train_cari_num,
-                      test_photo_num, test_cari_num, output_path,
-                      fmt='.jpg', web_test_photo_path=None, web_test_cari_path=None):
+
+def warp_interplation_from_images(content_id, style_id, images_path: Path, train_photo_num, train_cari_num,
+                                  test_photo_num, test_cari_num, output_path,
+                                  fmt='.jpg', web_test_photo_path=None, web_test_cari_path=None):
     # images_path = images
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     Path(output_path).mkdir(exist_ok=True, parents=True)
 
-    test_photo_paths = [web_test_photo_path]
-    test_cari_paths = [web_test_cari_path]
-    landmarks_path = images_path / 'landmark'
+    test_photo_paths = [os.path.join(Config.CONTENT_DIRECTORY, content_id)]
+    test_cari_paths = [os.path.join(Config.STYLE_DIRECTORY, style_id)]
+    landmarks_path = Path(Config.LANDMARK_DIRECTORY)
+    output_path = Config.CONTENT_DIRECTORY
     for idx, photo_path in enumerate(test_photo_paths):
         if idx > len(test_photo_paths) - 1:
             break
         test_face_landmark, test_face_path = load_landmarks_from_images([test_photo_paths[idx]], landmarks_path)
         test_cari_landmark, test_cari_path = load_landmarks_from_images([test_cari_paths[idx]], landmarks_path)
         if not len(test_face_path) or not len(test_cari_path):
-            continue
+            raise Exception(f'Could not find any landmarks from {test_photo_paths[idx]} '
+                            f'or {test_cari_paths[idx]}')
 
         test_photo_tensor = cvt_landmarks_distribution(device, 1, test_face_landmark)
         test_cari_tensor = cvt_landmarks_distribution(device, 1, test_cari_landmark)
@@ -145,8 +153,11 @@ def warp_interplation_from_images(images_path: Path, train_photo_num, train_cari
         # output = [face, cari_1, warped_1]
         output = [warped_1]
         output = np.hstack(output)
-        cv2.imwrite(f'{output_path}/content.jpg', output)
-        cv2.imwrite('images/style/style.jpg', cari_1)
+        warped_content_id = f'{get_prefix(content_id)}-{get_prefix(style_id)}_warped.png'
+        cv2.imwrite(f'{output_path}/{warped_content_id}', output)
+        # cv2.imwrite('images/style/style.jpg', cari_1)
+        return warped_content_id
+
 
 def cvt_landmarks_distribution(device, dim, landmarks):
     """
@@ -190,6 +201,7 @@ def load_landmarks(paths, landmarks_path):
             filter_paths.append(fp)
     return np.array(landmarks), filter_paths
 
+
 def load_landmarks_from_images(paths, landmarks_path):
     # path是挑选出来的十个photo图片，landmarks_path
     # paths = [images/style/style.jpg]
@@ -211,25 +223,26 @@ def load_landmarks_from_images(paths, landmarks_path):
             filter_paths.append(fp)
     return np.array(landmarks), filter_paths
 
+
 def generate_time_stamp(fmt='%m%d%H%M'):
     return time.strftime(fmt, time.localtime(time.time()))
 
-def warp_content_to_style_datasets(photo_content = 'datasets/WebCari_512/img/Adele Laurie Blue Adkins/P00004.jpg'
-    ,caricature_style = 'datasets/WebCari_512/img/Adele Laurie Blue Adkins/C00003.jpg'):
 
+def warp_content_to_style_datasets(photo_content='datasets/WebCari_512/img/Adele Laurie Blue Adkins/P00004.jpg'
+                                   , caricature_style='datasets/WebCari_512/img/Adele Laurie Blue Adkins/C00003.jpg'):
     web_cari_path = Path('datasets/WebCari_512')
     # warp_interplation(web_cari_path, 10, 10, 1, 1, f'output/{generate_time_stamp()}')
     warp_interplation_from_datasets(web_cari_path, 10, 10, 1, 1, f'images/content',
-                      web_test_photo_path=photo_content,
-                      web_test_cari_path=caricature_style)
+                                    web_test_photo_path=photo_content,
+                                    web_test_cari_path=caricature_style)
     # 上面最后两个参数分别为content（photo）图和style（caricature）图
 
-def warp_content_to_style_images(photo_content = 'images/content/content.jpg'
-    ,caricature_style = 'images/style/style.jpg'):
 
+def warp_content_to_style_images(content_id, style_id, photo_content='images/content/content.jpg'
+                                 , caricature_style='images/style/style.jpg'):
     images_path = Path('images')
     # warp_interplation(web_cari_path, 10, 10, 1, 1, f'output/{generate_time_stamp()}')
-    warp_interplation_from_images(images_path, 10, 10, 1, 1, f'images/content',
-                      web_test_photo_path=photo_content,
-                      web_test_cari_path=caricature_style)
+    return warp_interplation_from_images(content_id, style_id, images_path, 10, 10, 1, 1, f'images/content',
+                                         web_test_photo_path=photo_content,
+                                         web_test_cari_path=caricature_style)
     # 上面最后两个参数分别为content（photo）图和style（caricature）图

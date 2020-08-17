@@ -43,10 +43,12 @@ image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
 image_download.add_argument('height', type=int, default=512)
 image_download.add_argument('timestamp', type=str, default='')
+image_download.add_argument('category', type=str, default=None)
 
 from workers import RedisStreamer
 
 mast_streamer = RedisStreamer(redis_broker=Config.REDIS_BROKER_URL, prefix='mast')
+cast_streamer = RedisStreamer(redis_broker=Config.REDIS_BROKER_URL, prefix='cast')
 
 
 @api.route('/')
@@ -91,52 +93,20 @@ class Stylizations(Resource):
         # execute MAST
 
         req_id = str(uuid.uuid1())
+        msg = [{
+            'sid': sid,
+            'req_id': req_id,
+            'content_id': content_id,
+            'style_id': style_id,
+            'width': width,
+            'height': height,
+            'content_mask': content_mask,
+            'style_mask': style_mask
+        }]
         if alg == 'MAST':
-            msg = [{
-                'sid': sid,
-                'req_id': req_id,
-                'content_id': content_id,
-                'style_id': style_id,
-                'width': width,
-                'height': height,
-                'content_mask': content_mask,
-                'style_mask': style_mask
-            }]
-
-            # res = mast_streamer.predict(msg)
-            # print(f'Mast stylization result:{res}')
-            # return res
             mast_streamer.submit(msg)
-
-            # send_queue.put(msg)
-            # threading.Thread(target=mast_report, args=(msg, res_queue,)).start()
-        #     try:
-        #         mast_report(msg, res_queue)
-        #     except Exception as e:
-        #         traceback.print_exc()
-        #         body = {
-        #             'sid': sid,
-        #             'req_id': req_id,
-        #             'content_id': content_id,
-        #             'style_id': style_id,
-        #             'stylization_id': -1,
-        #             'timestamp': time.time()
-        #         }
-        #         synthesis_failed(body)
-        # # if os.path.exists(path):
-        #     return {'message': 'file already exists'}, 400
-
-        # pil_image = Image.open(io.BytesIO(image.read()))
-        #
-        # pil_image.save(path)
-        #
-        # image.close()
-        # pil_image.close()
-        # synthesis_complete({
-        #     'content_id': content_id,
-        #     'style_id': style_id,
-        #     'stylization_id': 'test.png',
-        # })
+        elif alg == 'CAST':
+            cast_streamer.submit(msg)
         return
 
 
@@ -148,12 +118,17 @@ class StylizationId(Resource):
         """ Returns category by ID """
         args = image_download.parse_args()
         as_attachment = args.get('asAttachment')
+        category = args.get('category')
 
-        # Here style image should be loaded from corresponding directory.
-        # image = None
-        #
-        pil_image = Image.open(os.path.join(Config.STYLIZATION_DIRECTORY, f'{stylization_id}'))
+        # get intermediate stylized image or not
+        if category != 'original':
+            path = os.path.join(Config.STYLIZATION_DIRECTORY, category, f'{stylization_id}')
+        else:
+            path = os.path.join(Config.STYLIZATION_DIRECTORY, f'{stylization_id}')
 
+        pil_image = None
+        if os.path.exists(path):
+            pil_image = Image.open(path)
         if pil_image is None:
             return {'success': False}, 400
 
@@ -178,3 +153,5 @@ class StylizationId(Resource):
         # image must be resized by previous width and height
         # and I/O pipe must be built for bytes transmission between backend and client end
         return send_file(image_io, attachment_filename=img_filename, as_attachment=as_attachment)
+
+

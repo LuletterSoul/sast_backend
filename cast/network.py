@@ -6,7 +6,6 @@ from PIL import Image
 from torch import nn as nn, nn
 from torch.nn import functional as F
 from torch.utils import data as data
-import cv2
 
 
 # from NeuralStyleTransfer import style_feats, content_feats, laplacian_s_feats, style_targets, content_targets, \

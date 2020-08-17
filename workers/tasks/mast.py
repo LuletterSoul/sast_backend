@@ -77,7 +77,7 @@ class MastModel(ManagedModel):
         }
 
         # set the model
-        print(f'[MastService]: Loading models...')
+        print(f'[Mast]: Loading models...')
         self.encoder = Encoder()
         self.encoder.load_state_dict(torch.load(os.path.join(self.root, self.cfg.encoder_path)))
         if self.cfg.type == 64:

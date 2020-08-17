@@ -1,2 +1,0 @@
-# Semantically aligned style transfer
-

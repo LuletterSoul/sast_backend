@@ -79,7 +79,7 @@ def synthesis_failed(body):
     # socketio.emit('onSynthesisFailed', body, broadcast=True)
 
 
-def synthesising(body):
+def synthesising(body, notify_fetch=False):
     """
     notify frontend with current synthesis progress.
     The frontend mustn't fetching stylization image from backend if the image's status is 'SYNTHESISING'
@@ -93,11 +93,16 @@ def synthesising(body):
         'total_time': 10,
         'total_update_steps': 10,
     }
+    :param notify_fetch: notify client end this stylized image could be fetched even if it is synthesising.
     :return:
     """
-    print(f'notify fronted synthesis with body: {body}')
+    # print(f'notify fronted synthesis with body: {body}')
     socket_connection = create_socket()
-    socket_connection.emit('onSynthesising', body, room=body['sid'])
+    if not notify_fetch:
+        socket_connection.emit('onSynthesising', body, room=body['sid'])
+    else:
+        socket_connection.emit('onSynthesisingFetch', body, room=body['sid'])
+
     # socketio.emit('onSynthesising', body, broadcast=True)
 
 

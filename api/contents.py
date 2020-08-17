@@ -12,10 +12,12 @@ import io
 api = Namespace('contents', description='Contents related operations')
 # create data storage directory
 os.makedirs(Config.CONTENT_DIRECTORY, exist_ok=True)
+# os.makedirs(Config.CAST_DATA_DIR, exist_ok=True)
 
 image_all = reqparse.RequestParser()
 image_all.add_argument('page', default=1, type=int)
 image_all.add_argument('size', default=50, type=int, required=False)
+image_all.add_argument('category', default='', type=str, required=False)
 
 image_upload = reqparse.RequestParser()
 image_upload.add_argument('file', location='files',
@@ -37,8 +39,14 @@ class Contents(Resource):
         args = image_all.parse_args()
         per_page = args['size']
         page = args['page'] - 1
+        category = args['category']
 
-        content_ids = os.listdir(Config.CONTENT_DIRECTORY)
+        path = os.path.join(Config.CONTENT_DIRECTORY, category)
+
+        if not os.path.exists(path):
+            content_ids = []
+        else:
+            content_ids = os.listdir(path)
         total = len(content_ids)
         pages = int(total / per_page)
 

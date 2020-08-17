@@ -127,6 +127,7 @@ dmypy.json
 /data
 .idea
 /cast/.idea
+/cast/models/*
 /CAST/.idea
 .DS_Store
 /experiment/*

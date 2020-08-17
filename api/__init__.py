@@ -5,7 +5,7 @@ from flask_restplus import Api
 from .contents import api as ns_contents
 from .styles import api as ns_styles
 from .stylizations import api as ns_stylizations
-from .categories import api as ns_categories
+from .category import api as ns_category
 from .annotations import api as ns_annotations
 from config import Config
 
@@ -31,5 +31,5 @@ api.add_namespace(ns_styles)
 # ...
 api.add_namespace(ns_stylizations)
 
-api.add_namespace(ns_categories)
+api.add_namespace(ns_category)
 api.add_namespace(ns_annotations)

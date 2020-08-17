@@ -16,6 +16,7 @@ os.makedirs(Config.STYLE_DIRECTORY, exist_ok=True)
 image_all = reqparse.RequestParser()
 image_all.add_argument('page', default=1, type=int)
 image_all.add_argument('size', default=50, type=int, required=False)
+image_all.add_argument('category', default='', type=str, required=False)
 
 image_upload = reqparse.RequestParser()
 image_upload.add_argument('file', location='files',
@@ -42,6 +43,14 @@ class Styles(Resource):
         total = len(style_ids)
         pages = int(total / per_page)
 
+        category = args['category']
+
+        path = os.path.join(Config.STYLE_DIRECTORY, category)
+
+        if not os.path.exists(path):
+            style_ids = []
+        else:
+            style_ids = os.listdir(path)
         return {
             "total": total,
             "pages": pages,
