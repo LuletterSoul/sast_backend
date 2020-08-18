@@ -28,13 +28,111 @@ class Category(Resource):
     def get(self):
         """ Returns all categories """
         # return query_util.fix_ids(current_user.categories.all())
-        return [
-            {
-                'value': 'WebCaricature',
-                'label': 'WebCaricature'
+        return {
+            'alg_default': 'MAST',
+            'category_default': 'COCO',
+            'alg_options': [
+                {
+                    'value': 'MAST',
+                    'label': 'MAST',
+                    'disable': False
+                },
+                {
+                    'value': 'CAST',
+                    'label': 'CAST',
+                    'disable': False
+                }
+            ],
+            'category_options':
+                [
+                    {
+                        'value': 'WebCaricature',
+                        'label': 'WebCaricature',
+                        'disable': False
+                    },
+                    {
+                        'value': 'COCO',
+                        'label': 'COCO',
+                        'disable': False
+                    },
+                    {
+                        'value': 'ArtisticFaces',
+                        'label': 'ArtisticFaces',
+                        'disable': False
+                    },
+                ],
+            'dataset_compatible_map': {
+                'WebCaricature': [
+                    {
+                        'value': 'MAST',
+                        'label': 'MAST',
+                        'disable': False
+                    },
+                    {
+                        'value': 'CAST',
+                        'label': 'CAST',
+                        'disable': False
+                    }
+                ],
+                'ArtisticFaces': [
+                    {
+                        'value': 'MAST',
+                        'label': 'MAST',
+                        'disable': False
+                    },
+                    {
+                        'value': 'CAST',
+                        'label': 'CAST',
+                        'disable': False
+                    }
+                ],
+                'COCO': [
+                    {
+                        'value': 'MAST',
+                        'label': 'MAST',
+                        'disable': False
+                    },
+                    {
+                        'value': 'CAST',
+                        'label': 'CAST',
+                        'disable': True
+                    }
+                ],
             },
-            {
-                'value': 'COCO',
-                'label': 'COCO'
-            },
-        ]
+            'alg_compatible_map': {
+                'CAST': [
+                    {
+                        'value': 'COCO',
+                        'label': 'COCO',
+                        'disable': True
+                    },
+                    {
+                        'value': 'WebCaricature',
+                        'label': 'WebCaricature',
+                        'disable': False
+                    },
+                    {
+                        'value': 'ArtisticFaces',
+                        'label': 'ArtisticFaces',
+                        'disable': False
+                    },
+                ],
+                'MAST': [
+                    {
+                        'value': 'WebCaricature',
+                        'label': 'WebCaricature',
+                        'disable': False
+                    },
+                    {
+                        'value': 'COCO',
+                        'label': 'COCO',
+                        'disable': False
+                    },
+                    {
+                        'value': 'ArtisticFaces',
+                        'label': 'ArtisticFaces',
+                        'disable': False
+                    },
+                ]
+            }
+        }
