@@ -65,7 +65,6 @@ class Styles(Resource):
         """ Creates an image """
         args = image_upload.parse_args()
         image = args['file']
-        category = args['category']
 
         directory = Config.STYLE_DIRECTORY
 

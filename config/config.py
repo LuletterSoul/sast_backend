@@ -41,9 +41,9 @@ class Config:
     # MAST Options
     MAST_WORK_DIR = os.getenv("MAST_WORK_DIR", os.path.join(root_path, 'mast'))
     MAST_BATCH_SIZE = os.getenv("MAST_BATCH_SIZE", 1)
-    MAST_WORKER_NUM = os.getenv("MAST_WORKER_NUM", 3)
+    MAST_WORKER_NUM = os.getenv("MAST_WORKER_NUM", 2)
     MAST_CHANNEL = os.getenv("MAST_CHANNEL", "mast")
-    MAST_DEVICES = os.getenv("MAST_DEVICES", "1,2,3")
+    MAST_DEVICES = os.getenv("MAST_DEVICES", "1,3")
 
     # CAST Options
     # content_dir = os.getenv("content_dir", "images/content")
@@ -55,9 +55,9 @@ class Config:
 
     CAST_WORK_DIR = os.getenv("CAST_WORK_DIR", os.path.join(root_path, 'cast'))
     CAST_BATCH_SIZE = os.getenv("CAST_BATCH_SIZE", 1)
-    CAST_WORKER_NUM = os.getenv("CAST_WORKER_NUM", 3)
+    CAST_WORKER_NUM = os.getenv("CAST_WORKER_NUM", 2)
     CAST_CHANNEL = os.getenv("CAST_CHANNEL", "cast")
-    CAST_DEVICES = os.getenv("MAST_DEVICES", "1,2,3")
+    CAST_DEVICES = os.getenv("MAST_DEVICES", "1,3")
 
 
 __all__ = ["Config"]

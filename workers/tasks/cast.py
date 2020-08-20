@@ -93,23 +93,25 @@ class DefaultCastConfig:
     save_dir = 'output'
     content_mask_dir = 'images/content_masks'
     style_mask_dir = 'images/style_masks'
+    # max_iter = 200
+    # max_iter_hr = 100
     max_iter = 200
     max_iter_hr = 100
-    update_step = 50
+    update_step = 30
     update_step_hr = 50
     img_size = 256
     img_size_hr = 512
-    kl = 50
+    kl = 1
     km = 1
     sigma = 10
     batch_size = 4
     use_mask = False
-    lw = 200
-    cw = 200
+    lw = 30
+    cw = 1
     sw = 1
     content_src = ''
     content_list = []
-    mean = ''
+    mean = 'mean'
     gbp = False
     opt_pro = 'process'
 
@@ -122,8 +124,10 @@ save_dir.mkdir(exist_ok=True, parents=True)
 process_dir = args.opt_pro / save_dir
 process_dir.mkdir(exist_ok=True, parents=True)
 
-style_weights = [args.sw] * 5
-style_layers = ['r11', 'r21', 'r31', 'r41', 'r51']
+# style_weights = [args.sw] * 5
+# style_layers = ['r11', 'r21', 'r31', 'r41', 'r51']
+style_weights = []
+style_layers = []
 
 alpha = args.cw / (args.cw + args.lw)
 beta = args.lw / (args.cw + args.lw)
