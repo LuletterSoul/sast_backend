@@ -1,0 +1,7 @@
+# the config of dist
+encoder_dir: 'models/4SE.pth'
+decoder_dir: 'models/4SD.pth'
+matrix_dir: 'models/FTM.pth'
+
+
+
