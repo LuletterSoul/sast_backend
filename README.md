@@ -4,6 +4,14 @@
 # Requirements
 
 
+## Python
+python:  3.6+
+## Dependencies
+
+    pip install -r requirements.txt
+
+
+
 # Redis
 
 This project requires message broker based Redis.
@@ -24,15 +32,6 @@ We construct task queues that are used as a mechanism to distribute style transf
 
     celery -A workers worker -l info
 
-
-## python version
-python:  3.6+
-## install dependencies
-
-
-``
-pip install -r requirements.txt
-``
 
 # Run backend in test environment
 

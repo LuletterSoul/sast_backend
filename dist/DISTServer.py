@@ -12,23 +12,25 @@ from libs.models import SmallEncoder4_16x_aux, SmallDecoder4_16x
 from libs.utils import makeVideo
 from config.config import Config
 
+
 class DISTServer(object):
     def __init__(self):
         self.content_dir = Config.content_dir_dist
         self.style_dir = Config.style_dir_dist
         self.output_dir = Config.output_dir_dist
-        self.encoder_dir = Config.encoder_dir_dist
-        self.decoder_dir = Config.decoder_dir_dist
-        self.matrix = Config.matrix_dir_dist
-        self.gpu_id = Config.gpu_id
+        self.encoder_dir = Config.DIST_ENCODER
+        self.decoder_dir = Config.DIST_DECODER
+        self.matrix = Config.DIST_MATRIX
+        self.gpu_id = Config.DIST_DEVICES
         os.makedirs(self.content_dir, exist_ok=True)
         os.makedirs(self.style_dir, exist_ok=True)
         os.makedirs(self.output_dir, exist_ok=True)
-        
+
     def init_models(self):
         if torch.cuda.is_available() and self.gpu_id >= 0:
             torch.cuda.set_device(self.gpu_id)
-        print(f'[DIST]: # CUDA:{self.gpu_id} available: {torch.cuda.get_device_name(self.gpu_id)}')
+        print(
+            f'[DIST]: # CUDA:{self.gpu_id} available: {torch.cuda.get_device_name(self.gpu_id)}')
         self.enc = SmallEncoder4_16x_aux(self.encoder_dir)
         self.dec = SmallDecoder4_16x(self.decoder_dir)
         self.matrix = MulLayer_se_sd_new1('r41')
@@ -75,7 +77,8 @@ class DISTServer(object):
                 content_landmark = msg['content_landmark']
                 style_landmark = msg['style_landmark']
                 try:
-                    stylized_img_id = self.process(content_img_id, style_img_id, content_landmark, style_landmark)
+                    stylized_img_id = self.process(
+                        content_img_id, style_img_id, content_landmark, style_landmark)
                     result_msg = {
                         'content_img_id': content_img_id,
                         'style_img_id': style_img_id,
