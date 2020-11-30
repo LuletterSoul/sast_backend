@@ -59,5 +59,16 @@ class Config:
     CAST_CHANNEL = os.getenv("CAST_CHANNEL", "cast")
     CAST_DEVICES = os.getenv("MAST_DEVICES", "1,3")
 
+    ### DIST Options
+    content_dir_dist = os.getenv("content_dir_dist", 'data/video/')
+    style_dir_dist = os.getenv("style_dir_dist", "data/style/")
+    output_dir_dist = os.getenv('output_dir_dist' , 'data/Video_Results')
+    encoder_dir_dist = os.getenv('encoder_dir_dist' , 'dist/models/4SE.pth')
+    decoder_dir_dist = os.getenv('decoder_dir_dist' , 'dist/models/4SD.pth')
+    matrix_dir_dist = os.getenv('matrix_dir_dist' , 'dist/models/FTM.pth') 
+    loadSize = 512
+    fineSizeH = 512
+    fineSizeW = 512
+    gpu_id = 1
 
 __all__ = ["Config"]

@@ -478,3 +478,5 @@ def create_cast_worker():
                               daemon=True)
     thread.start()
     return thread, destroy_event
+
+# %%
