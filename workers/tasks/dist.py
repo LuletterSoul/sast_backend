@@ -55,7 +55,7 @@ class DISTModel(ManagedModel):
             self.matrix = self.matrix.cuda()
         print(f'[DIST]: Load models completely!')
 
-    def process(self, content_path, style_path):
+    def process(self, content_path, style_path,content_name,style_name):
         """
         :param video_dir_id: 内容图id,带后缀
         :param style_img_id: 风格图id,带后缀
@@ -69,9 +69,9 @@ class DISTModel(ManagedModel):
                                                      batch_size=1,
                                                      shuffle=False)
         contentV = torch.Tensor(1, 3, Config.FINE_SIZE_H, Config.FINE_SIZE_W)
-        if(torch.cuda.is_available()):
-            styleV.cuda()
-            contentV.cuda()
+        if torch.cuda.is_available():
+           styleV = styleV.cuda()
+           contentV = contentV.cuda()
         result_frames = []
         contents = []
         style = styleV.squeeze(0).cpu().numpy()
@@ -92,26 +92,30 @@ class DISTModel(ManagedModel):
             result_frames.append(transfer.squeeze(0).cpu().numpy())
         end_time = time.time()
         print('Elapsed time is: %.4f seconds' % (end_time - start_time))
-        makeVideo(contents, style, result_frames, Config.output_dir_dist, content_path.split(
-            '/')[-2], os.path.basename(style_path).split('.')[0])
-        c = content_path.split('/')[-2]
-        s = os.path.basename(style_path).split('.')[0]
-        video_result_dir_id = f'{c}_{s}.avi'
-        return video_result_dir_id
+        stylization_id = makeVideo(f'{content_path}.mp4',contents, style, result_frames, self.output_dir, content_name, style_name)
+        # c = content_path.split('/')[-2]
+        # s = os.path.basename(style_path).split('.')[0]
+        # video_result_dir_id = f'{c}_{s}.avi'
+        # return video_result_dir_id
+        return stylization_id
 
     def predict(self, msg):
         print(f'[DIST]: get msg {msg} from receive queue, start process...')
         content_id = msg.get('content_id')
         style_id = msg.get('style_id')
+        content_name = os.path.splitext(content_id)[0]
+        style_name = os.path.splitext(style_id)[0]
         category = msg.get('category')
         content_path = os.path.join(
-            Config.CONTENT_DIRECTORY, category, os.path.join(content_id)[0])
+            Config.CONTENT_DIRECTORY, category, content_name)
         style_path = os.path.join(
-            category, Config.STYLIZATION_DIRECTORY,  style_id)
+            category, Config.STYLE_DIRECTORY,  category,style_id)
         msg['timestamp'] = time.time()
         try:
-            self.process(content_path, style_path)
+            stylization_id = self.process(content_path, style_path, content_name, style_name)
             msg['status'] = 'success'
+            msg['stylization_id'] = stylization_id
+            synthesis_complete(msg)
             print(f'[DIST]: result msg have put into results queue...')
             return msg
         except Exception as e:

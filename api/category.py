@@ -82,6 +82,11 @@ class Category(Resource):
                         'value': 'CAST',
                         'label': 'CAST',
                         'disable': False
+                    },
+                    {
+                        'value': 'DIST',
+                        'label': 'DIST',
+                        'disable': True
                     }
                 ],
                 'ArtisticFaces': [

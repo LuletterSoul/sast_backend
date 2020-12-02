@@ -1,5 +1,6 @@
 from __future__ import division
 import os
+from utils import video
 import cv2
 import time
 import torch
@@ -11,6 +12,7 @@ import scipy.sparse.linalg
 # from cv2.ximgproc import jointBilateralFilter
 # import torchfile
 from numpy.lib.stride_tricks import as_strided
+from utils import FFMPEG_MP4Writer
 
 def whiten(cF):
     cFSize = cF.size()
@@ -52,12 +54,15 @@ def numpy2cv2(cont,style,prop,width,height):
     #return np.concatenate((cont,np.concatenate((style,prop),axis=1)),axis=1)
     return prop,cont
 
-def makeVideo(content,style,props,outf,cname,sname):
+def makeVideo(ori_content,content,style,props,outf,cname,sname):
     print('Stack transferred frames back to video...')
     layers,height,width = content[0].shape
-    fourcc = cv2.VideoWriter_fourcc(*'MJPG')    
-    video = cv2.VideoWriter(os.path.join(outf,f'{cname}_{sname}.avi'),fourcc,10.0,(width,height))
-    ori_video = cv2.VideoWriter(os.path.join(outf,f'{cname}.avi'),fourcc,10.0,(width,height))
+    fourcc = cv2.VideoWriter_fourcc(*'MP4V')    
+    stylization_id = f'{cname}_{sname}.mp4'
+    # video = cv2.VideoWriter(os.path.join(outf,stylization_id),fourcc,10.0,(width,height))
+    # ori_video = cv2.VideoCapture(ori_content)
+    fps = 10
+    video = FFMPEG_MP4Writer(os.path.join(outf,stylization_id),(width,height),fps)
     for j in range(len(content)):
         prop,cont = numpy2cv2(content[j],style,props[j],width,height)
         cv2.imwrite('prop.png',prop)
@@ -67,13 +72,14 @@ def makeVideo(content,style,props,outf,cname,sname):
         imgc = cv2.imread('content.png')
 
         video.write(imgj)
-        ori_video.write(imgc)
+        # ori_video.write(imgc)
         # RGB or BRG, yuks
     video.release()
-    ori_video.release()
+    # ori_video.release()
     os.remove('prop.png')
     os.remove('content.png')
     print('Transferred video saved at %s.'%outf)
+    return  stylization_id
 
 def print_options(opt):
     message = ''

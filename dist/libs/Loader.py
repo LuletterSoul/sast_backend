@@ -51,7 +51,7 @@ class Dataset_Video(data.Dataset):
     def __init__(self,dataPath,loadSize, fineSizeH, fineSizeW, test=False,video=False):
         super(Dataset_Video,self).__init__()
         self.dataPath = dataPath
-        self.image_list = [x for x in os.listdir(dataPath) if is_image_file(x)]
+        self.image_list = [x for x in os.listdir(dataPath) if is_image_file(x) and os.path.basename !='preview.png']
         self.image_list = sorted(self.image_list)
         if(video):
             self.image_list = sorted(self.image_list)

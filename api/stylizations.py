@@ -137,7 +137,7 @@ class StylizationId(Resource):
         as_attachment = args.get('asAttachment')
         category = args.get('category')
 
-        content_name = os.path.splitext(stylization_id)[0]
+        stylization_name = os.path.splitext(stylization_id)[0]
         fmt = os.path.splitext(stylization_id)[1].lower()
         # get intermediate stylized image or not
         if category != 'original':

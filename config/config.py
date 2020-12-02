@@ -85,7 +85,7 @@ class Config:
         DIST_WORK_DIR, 'models/FTM.pth'))
     LOAD_SIZE = 512
     FINE_SIZE_H = 512
-    FINE_SIZE_W = 512
+    FINE_SIZE_W = 1024
     DIST_DEVICES = os.getenv('DIST_DEVICES', "0,1")
 
 

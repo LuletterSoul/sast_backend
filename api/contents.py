@@ -50,7 +50,7 @@ class Contents(Resource):
         if not os.path.exists(path):
             content_ids = []
         else:
-            content_ids = os.listdir(path)
+            content_ids = [p for p in os.listdir(path) if os.path.isfile(os.path.join(path,p))]
         total = len(content_ids)
         pages = int(total / per_page)
 
