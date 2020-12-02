@@ -12,6 +12,15 @@
 """
 
 # %%
+import time
+from cast.network import *
+from torchvision import transforms
+import torchvision
+from torch import optim
+from torch.autograd import Variable
+from cast.utils import *
+from workers.stream import ManagedModel, mp, threading, run_redis_workers_forever
+from sockets import *
 import os
 import shutil
 import traceback
@@ -23,18 +32,8 @@ from utils.utils import compose_prefix_id, construct_cast_msg, get_prefix, compo
 
 model_dir = os.getcwd() + '/models/'
 
-from sockets import *
-from workers.stream import ManagedModel, mp, threading, run_redis_workers_forever
 
 model_dir = os.getcwd() + '/models/'
-
-from cast.utils import *
-from torch.autograd import Variable
-from torch import optim
-import torchvision
-from torchvision import transforms
-from cast.network import *
-import time
 
 
 # parser = argparse.ArgumentParser()
@@ -145,7 +144,8 @@ loss_layers = style_layers + content_layers + laplacia_layers + mutex_layers
 weights = style_weights + content_weights + laplacia_weights + mutex_weights
 prep = transforms.Compose([transforms.Resize(args.img_size),
                            transforms.ToTensor(),
-                           transforms.Lambda(lambda x: x[torch.LongTensor([2, 1, 0])]),  # turn to BGR
+                           transforms.Lambda(
+                               lambda x: x[torch.LongTensor([2, 1, 0])]),  # turn to BGR
                            transforms.Normalize(mean=[0.40760392, 0.45795686, 0.48501961],  # subtract imagenet mean
                                                 std=[1, 1, 1]),
                            transforms.Lambda(lambda x: x.mul_(255)),
@@ -153,7 +153,8 @@ prep = transforms.Compose([transforms.Resize(args.img_size),
 
 prep_hr = transforms.Compose([transforms.Resize(args.img_size_hr),
                               transforms.ToTensor(),
-                              transforms.Lambda(lambda x: x[torch.LongTensor([2, 1, 0])]),  # turn to BGR
+                              transforms.Lambda(
+                                  lambda x: x[torch.LongTensor([2, 1, 0])]),  # turn to BGR
                               transforms.Normalize(mean=[0.40760392, 0.45795686, 0.48501961],
                                                    # subtract imagenet mean
                                                    std=[1, 1, 1]),
@@ -162,7 +163,8 @@ prep_hr = transforms.Compose([transforms.Resize(args.img_size_hr),
 postpa = transforms.Compose([transforms.Lambda(lambda x: x.mul_(1. / 255)),
                              transforms.Normalize(mean=[-0.40760392, -0.45795686, -0.48501961],  # add imagenet mean
                                                   std=[1, 1, 1]),
-                             transforms.Lambda(lambda x: x[torch.LongTensor([2, 1, 0])]),  # turn to RGB
+                             transforms.Lambda(
+                                 lambda x: x[torch.LongTensor([2, 1, 0])]),  # turn to RGB
                              ])
 mask_tf = transforms.Compose([ToUnNormalizedTensor()])
 postpb = transforms.Compose([transforms.ToPILImage()])
@@ -202,7 +204,8 @@ class CastModel(ManagedModel):
         print(f'[Cast]: Loading models...')
         self.device = torch.device('cuda')
         self.vgg = VGG()
-        self.vgg.load_state_dict(torch.load(os.path.join(Config.CAST_WORK_DIR, 'models/vgg_conv.pth')))
+        self.vgg.load_state_dict(torch.load(os.path.join(
+            Config.CAST_WORK_DIR, 'models/vgg_conv.pth')))
         for param in self.vgg.parameters():
             param.requires_grad = False
         if torch.cuda.is_available():
@@ -215,17 +218,20 @@ class CastModel(ManagedModel):
         category = msg.get('category')
 
         # warped image will be saved in content directory as input of stylization
-        warped_id = warp_content_to_style_images(content_id, style_id, category=category)
+        warped_id = warp_content_to_style_images(
+            content_id, style_id, category=category)
 
         # related image output directory
         style_path = os.path.join(Config.STYLE_DIRECTORY, category, style_id)
         content_path = os.path.join(Config.CONTENT_DIRECTORY, warped_id)
         stylization_id = compose_prefix_id(content_id, style_id)
-        output_path = os.path.join(Config.STYLIZATION_DIRECTORY, stylization_id)
+        output_path = os.path.join(
+            Config.STYLIZATION_DIRECTORY, stylization_id)
         intermediate_id_prefix = get_prefix(warped_id)
 
         # create intermediate stylized image output directory.
-        intermediate_output_dir = os.path.join(Config.STYLIZATION_DIRECTORY, intermediate_id_prefix)
+        intermediate_output_dir = os.path.join(
+            Config.STYLIZATION_DIRECTORY, intermediate_id_prefix)
         os.makedirs(intermediate_output_dir, exist_ok=True)
         try:
             self.render(msg, content_path, style_path, intermediate_id_prefix, intermediate_output_dir, stylization_id,
@@ -279,7 +285,8 @@ class CastModel(ManagedModel):
                 optimizer.zero_grad()
                 out = self.vgg(opt_img, loss_layers)
                 # M.add_mutex_constrain(out[-len(mutex_layers):])
-                layer_losses = [weights[a] * M.loss_fns[a](A, M.targets[a]) for a, A in enumerate(out)]
+                layer_losses = [weights[a] * M.loss_fns[a]
+                                (A, M.targets[a]) for a, A in enumerate(out)]
                 torch.cuda.empty_cache()
                 loss = sum(layer_losses)
                 loss.backward()
@@ -287,18 +294,23 @@ class CastModel(ManagedModel):
 
                 # print loss
                 if n_iter[0] % show_iter == (show_iter - 1):
-                    print('Iteration: %d, loss: %f' % (n_iter[0] + 1, loss.item()))
+                    print('Iteration: %d, loss: %f' %
+                          (n_iter[0] + 1, loss.item()))
                 if n_iter[0] % args.update_step == (args.update_step - 1) and not M.laplacian_updated:
-                    M.update_loss_fns_with_lg(out[-len(laplacia_layers):], M.laplacian_s_feats, args.kl)
-                    print('Update: Laplacian graph and Loss functions: %d' % (n_iter[0] + 1))
+                    M.update_loss_fns_with_lg(
+                        out[-len(laplacia_layers):], M.laplacian_s_feats, args.kl)
+                    print('Update: Laplacian graph and Loss functions: %d' %
+                          (n_iter[0] + 1))
 
                 return loss
 
             # each intermediate stylized image will be
             # saved into a directory in case truncated image read by client end.
             intermediate_id = f'{intermediate_id_prefix}_{n_iter[0]}.png'
-            warped_output_path = os.path.join(intermediate_output_dir, intermediate_id)
-            self.save_optimized_img(opt_img, warped_output_path, height=height, width=width)
+            warped_output_path = os.path.join(
+                intermediate_output_dir, intermediate_id)
+            self.save_optimized_img(
+                opt_img, warped_output_path, height=height, width=width)
             # notify client end with current progress
             current_cost_time = round(time.time() - start, 2)
             body = construct_cast_msg(msg, intermediate_id, n_iter[0], current_cost_time, total_update_steps,
@@ -312,14 +324,16 @@ class CastModel(ManagedModel):
                        args.km, content_mask, style_mask, args.use_mask, args.mean)
         # now initialise with upsampled lowres result
         opt_img = prep_hr(out_img).unsqueeze(0)
-        opt_img = Variable(opt_img.type_as(content_image_hr.data), requires_grad=True)
+        opt_img = Variable(opt_img.type_as(
+            content_image_hr.data), requires_grad=True)
         optimizer = optim.LBFGS([opt_img])
         n_iter = [0]
         while n_iter[0] <= args.max_iter_hr:
             def closure():
                 optimizer.zero_grad()
                 out = self.vgg(opt_img, loss_layers)
-                layer_losses = [weights[a] * M.loss_fns[a](A, M.targets[a]) for a, A in enumerate(out)]
+                layer_losses = [weights[a] * M.loss_fns[a]
+                                (A, M.targets[a]) for a, A in enumerate(out)]
                 loss = sum(layer_losses)
                 torch.cuda.empty_cache()
                 loss.backward()
@@ -327,15 +341,19 @@ class CastModel(ManagedModel):
                 n_iter[0] += 1
                 # print loss
                 if n_iter[0] % show_iter == (show_iter - 1):
-                    print('Iteration: %d, loss: %f' % (n_iter[0] + 1, loss.item()))
+                    print('Iteration: %d, loss: %f' %
+                          (n_iter[0] + 1, loss.item()))
                 if n_iter[0] % args.update_step_hr == (args.update_step_hr - 1) and not M.laplacian_updated:
-                    M.update_loss_fns_with_lg(out[-len(laplacia_layers):], M.laplacian_s_feats, args.kl)
-                    print('Update: Laplacian graph and Loss functions: %d' % (n_iter[0] + 1))
+                    M.update_loss_fns_with_lg(
+                        out[-len(laplacia_layers):], M.laplacian_s_feats, args.kl)
+                    print('Update: Laplacian graph and Loss functions: %d' %
+                          (n_iter[0] + 1))
 
                 return loss
 
             intermediate_id = f'{intermediate_id_prefix}_hr_{n_iter[0]}.png'
-            warped_output_path = os.path.join(intermediate_output_dir, intermediate_id)
+            warped_output_path = os.path.join(
+                intermediate_output_dir, intermediate_id)
             self.save_optimized_img(opt_img, warped_output_path)
             current_cost_time = round(time.time() - start, 2)
             body = construct_cast_msg(msg, intermediate_id, args.max_iter + n_iter[0], current_cost_time,
@@ -360,7 +378,8 @@ class CastModel(ManagedModel):
         torchvision.utils.save_image(out_img_hr.clone(), output_path)
         if height is not None and width is not None:
             img = cv2.imread(output_path)
-            img = cv2.resize(img, (width, height), interpolation=cv2.INTER_CUBIC)
+            img = cv2.resize(img, (width, height),
+                             interpolation=cv2.INTER_CUBIC)
             cv2.imwrite(output_path, img)
 
 
@@ -406,7 +425,7 @@ class CastModel(ManagedModel):
 #                     help='Directory to save the model')
 #
 # parser.add_argument('--gbp',
-#                     action='store_true',
+# content_id                     action='store_true',
 #                     help='Group by person')
 #
 # parser.add_argument('--opt_pro',
@@ -470,8 +489,7 @@ def create_cast_worker():
     devices = parse_devices(Config.CAST_DEVICES)
     # batch_size = Config.MAST_BATCH_SIZE
     # worker_num = Config.MAST_WORKER_NUM
-    thread = threading.Thread(target=run_redis_workers_forever, args=(CastModel
-                                                                      , Config.CAST_BATCH_SIZE, 0.1,
+    thread = threading.Thread(target=run_redis_workers_forever, args=(CastModel, Config.CAST_BATCH_SIZE, 0.1,
                                                                       Config.CAST_WORKER_NUM, devices,
                                                                       Config.REDIS_BROKER_URL, Config.CAST_CHANNEL,
                                                                       model_init_args, None, destroy_event,),

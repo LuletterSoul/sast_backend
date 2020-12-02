@@ -1,4 +1,5 @@
 # coding=UTF-8
+from api import category
 import os
 import torch
 import time
@@ -54,16 +55,16 @@ class DISTModel(ManagedModel):
             self.matrix = self.matrix.cuda()
         print(f'[DIST]: Load models completely!')
 
-    def process(self, video_dir_id, style_img_id):
+    def process(self, content_path, style_path):
         """
         :param video_dir_id: 内容图id,带后缀
         :param style_img_id: 风格图id,带后缀
         :return: 风格化视频文件目录id
         """
-        print(style_img_id)
-        styleV = loadImg(style_img_id).unsqueeze(0)
+        print(style_path)
+        styleV = loadImg(style_path).unsqueeze(0)
         content_dataset = Dataset_Video(
-            video_dir_id, Config.LOAD_SIZE, Config.FINE_SIZE_H, Config.FINE_SIZE_W, test=True, video=True)
+            content_path, Config.LOAD_SIZE, Config.FINE_SIZE_H, Config.FINE_SIZE_W, test=True, video=True)
         content_loader = torch.utils.data.DataLoader(dataset=content_dataset,
                                                      batch_size=1,
                                                      shuffle=False)
@@ -91,24 +92,25 @@ class DISTModel(ManagedModel):
             result_frames.append(transfer.squeeze(0).cpu().numpy())
         end_time = time.time()
         print('Elapsed time is: %.4f seconds' % (end_time - start_time))
-        makeVideo(contents, style, result_frames, Config.output_dir_dist, video_dir_id.split(
-            '/')[-2], os.path.basename(style_img_id).split('.')[0])
-        c = video_dir_id.split('/')[-2]
-        s = os.path.basename(style_img_id).split('.')[0]
+        makeVideo(contents, style, result_frames, Config.output_dir_dist, content_path.split(
+            '/')[-2], os.path.basename(style_path).split('.')[0])
+        c = content_path.split('/')[-2]
+        s = os.path.basename(style_path).split('.')[0]
         video_result_dir_id = f'{c}_{s}.avi'
         return video_result_dir_id
 
     def predict(self, msg):
         print(f'[DIST]: get msg {msg} from receive queue, start process...')
-        video_dir_id = msg.get('video_dir_id')
-        style_img_id = msg.get('style_id')
-        c = video_dir_id.split('/')[-2]
-        s = os.path.basename(style_img_id).split('.')[0]
-        video_result_id = f'{c}_{s}.avi'
-        msg['video_result_id'] = f'data/Video_Results/{video_result_id}'
+        content_id = msg.get('content_id')
+        style_id = msg.get('style_id')
+        category = msg.get('category')
+        content_path = os.path.join(
+            Config.CONTENT_DIRECTORY, category, os.path.join(content_id)[0])
+        style_path = os.path.join(
+            category, Config.STYLIZATION_DIRECTORY,  style_id)
         msg['timestamp'] = time.time()
         try:
-            self.process(video_dir_id, style_img_id)
+            self.process(content_path, style_path)
             msg['status'] = 'success'
             print(f'[DIST]: result msg have put into results queue...')
             return msg

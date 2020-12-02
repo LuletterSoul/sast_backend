@@ -54,7 +54,7 @@ class Config:
     # MAST Options
     MAST_WORK_DIR = os.getenv("MAST_WORK_DIR", os.path.join(root_path, 'mast'))
     MAST_BATCH_SIZE = os.getenv("MAST_BATCH_SIZE", 1)
-    MAST_WORKER_NUM = os.getenv("MAST_WORKER_NUM", 2)
+    MAST_WORKER_NUM = os.getenv("MAST_WORKER_NUM", 1)
     MAST_CHANNEL = os.getenv("MAST_CHANNEL", "mast")
     MAST_DEVICES = os.getenv("MAST_DEVICES", "0,1")
 
@@ -68,14 +68,14 @@ class Config:
 
     CAST_WORK_DIR = os.getenv("CAST_WORK_DIR", os.path.join(root_path, 'cast'))
     CAST_BATCH_SIZE = os.getenv("CAST_BATCH_SIZE", 1)
-    CAST_WORKER_NUM = os.getenv("CAST_WORKER_NUM", 2)
+    CAST_WORKER_NUM = os.getenv("CAST_WORKER_NUM", 1)
     CAST_CHANNEL = os.getenv("CAST_CHANNEL", "cast")
     CAST_DEVICES = os.getenv("MAST_DEVICES", "0,1")
 
     # DIST Options
     DIST_WORK_DIR = os.getenv("DIST_WORK_DIR", os.path.join(root_path, 'dist'))
     DIST_BATCH_SIZE = os.getenv("DIST_BATCH_SIZE", 1)
-    DIST_WORKER_NUM = os.getenv("DIST_WORKER_NUM", 2)
+    DIST_WORKER_NUM = os.getenv("DIST_WORKER_NUM", 1)
     DIST_CHANNEL = os.getenv("DIST_CHANNEL", "dist")
     DIST_ENCODER = os.getenv('DIST_ENCODER', os.path.join(
         DIST_WORK_DIR, 'models/4SE.pth'))

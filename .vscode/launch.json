@@ -5,11 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "app",
             "type": "python",
             "request": "launch",
             "program": "app.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": ["--host","192.168.0.28", "--port", "9528"]
         }
     ]
 }

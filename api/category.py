@@ -41,6 +41,11 @@ class Category(Resource):
                     'value': 'CAST',
                     'label': 'CAST',
                     'disable': False
+                },
+                {
+                    'value': 'DIST',
+                    'label': 'DIST',
+                    'disable': False
                 }
             ],
             'category_options':
@@ -60,7 +65,12 @@ class Category(Resource):
                         'label': 'ArtisticFaces',
                         'disable': False
                     },
-                ],
+                    {
+                        'value': 'Video',
+                        'label': 'Video',
+                        'disable': False
+                    },
+            ],
             'dataset_compatible_map': {
                 'WebCaricature': [
                     {
@@ -84,6 +94,28 @@ class Category(Resource):
                         'value': 'CAST',
                         'label': 'CAST',
                         'disable': False
+                    },
+                    {
+                        'value': 'DIST',
+                        'label': 'DIST',
+                        'disable': True
+                    }
+                ],
+                'Video': [
+                    {
+                        'value': 'MAST',
+                        'label': 'MAST',
+                        'disable': True
+                    },
+                    {
+                        'value': 'CAST',
+                        'label': 'CAST',
+                        'disable': True
+                    },
+                    {
+                        'value': 'DIST',
+                        'label': 'DIST',
+                        'disable': False
                     }
                 ],
                 'COCO': [
@@ -95,6 +127,11 @@ class Category(Resource):
                     {
                         'value': 'CAST',
                         'label': 'CAST',
+                        'disable': True
+                    },
+                    {
+                        'value': 'DIST',
+                        'label': 'DIST',
                         'disable': True
                     }
                 ],
@@ -116,6 +153,11 @@ class Category(Resource):
                         'label': 'ArtisticFaces',
                         'disable': False
                     },
+                    {
+                        'value': 'Video',
+                        'label': 'Video',
+                        'disable': True
+                    },
                 ],
                 'MAST': [
                     {
@@ -131,6 +173,33 @@ class Category(Resource):
                     {
                         'value': 'ArtisticFaces',
                         'label': 'ArtisticFaces',
+                        'disable': False
+                    },
+                    {
+                        'value': 'Video',
+                        'label': 'Video',
+                        'disable': True
+                    },
+                ],
+                'DIST': [
+                    {
+                        'value': 'WebCaricature',
+                        'label': 'WebCaricature',
+                        'disable': True
+                    },
+                    {
+                        'value': 'COCO',
+                        'label': 'COCO',
+                        'disable': True
+                    },
+                    {
+                        'value': 'ArtisticFaces',
+                        'label': 'ArtisticFaces',
+                        'disable': True
+                    },
+                    {
+                        'value': 'Video',
+                        'label': 'Video',
                         'disable': False
                     },
                 ]

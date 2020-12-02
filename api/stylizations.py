@@ -1,12 +1,13 @@
+from api.contents import is_photo
+from workers import RedisStreamer
 import io
 import os
 import uuid
 
-from PIL import Image
 from flask import send_file
 from flask_restplus import Namespace, Resource, reqparse
 from werkzeug.datastructures import FileStorage
-from workers import mast_report
+from utils import *
 
 from config import Config
 
@@ -23,12 +24,18 @@ image_upload.add_argument('file', location='files',
                           help='PNG or JPG file')
 
 image_stylization = reqparse.RequestParser()
-image_stylization.add_argument('content_id', type=str, required=True, location='json', help='Content image id.')
-image_stylization.add_argument('style_id', type=str, required=True, location='json', help='Style image id.')
-image_stylization.add_argument('alg', type=str, required=True, location='json', help='CAST | MAST')
-image_stylization.add_argument('sid', type=str, required=True, location='json', help='socket session id.')
-image_stylization.add_argument('width', type=int, required=True, location='json', help='Image width')
-image_stylization.add_argument('height', type=int, required=True, location='json', help='Image height')
+image_stylization.add_argument(
+    'content_id', type=str, required=True, location='json', help='Content image id.')
+image_stylization.add_argument(
+    'style_id', type=str, required=True, location='json', help='Style image id.')
+image_stylization.add_argument(
+    'alg', type=str, required=True, location='json', help='CAST | MAST DIST')
+image_stylization.add_argument(
+    'sid', type=str, required=True, location='json', help='socket session id.')
+image_stylization.add_argument(
+    'width', type=int, required=True, location='json', help='Image width')
+image_stylization.add_argument(
+    'height', type=int, required=True, location='json', help='Image height')
 image_stylization.add_argument('content_mask', location='json',
                                type=list, required=False,
                                help='PNG or JPG file')
@@ -36,7 +43,8 @@ image_stylization.add_argument('style_mask', location='json',
                                type=list, required=False,
                                help='PNG or JPG file')
 
-image_stylization.add_argument('category', default='', type=str, required=False)
+image_stylization.add_argument(
+    'category', default='', type=str, required=False)
 
 # image_stylization.add_argument('content_mask',type=list,location )
 # create_annotation.add_argument('keypoints', type=list, location='json', default=[])
@@ -47,10 +55,13 @@ image_download.add_argument('height', type=int, default=512)
 image_download.add_argument('timestamp', type=str, default='')
 image_download.add_argument('category', type=str, default='')
 
-from workers import RedisStreamer
 
-mast_streamer = RedisStreamer(redis_broker=Config.REDIS_BROKER_URL, prefix='mast')
-cast_streamer = RedisStreamer(redis_broker=Config.REDIS_BROKER_URL, prefix='cast')
+mast_streamer = RedisStreamer(
+    redis_broker=Config.REDIS_BROKER_URL, prefix='mast')
+cast_streamer = RedisStreamer(
+    redis_broker=Config.REDIS_BROKER_URL, prefix='cast')
+dist_streamer = RedisStreamer(
+    redis_broker=Config.REDIS_BROKER_URL, prefix='dist')
 
 
 @api.route('/')
@@ -58,12 +69,12 @@ class Stylizations(Resource):
 
     @api.expect(image_all)
     def get(self):
-        """ Returns pageable content image"""
+        """ Returns pageable stylization image"""
         args = image_all.parse_args()
         per_page = args['size']
         page = args['page'] - 1
 
-        stylization_ids = os.listdir(Config.CONTENT_DIRECTORY)
+        stylization_ids = os.listdir(Config.STYLIZATION_DIRECTORY)
         total = len(stylization_ids)
         pages = int(total / per_page)
 
@@ -77,7 +88,7 @@ class Stylizations(Resource):
 
     @api.expect(image_stylization)
     def post(self):
-        """ Creates an image """
+        """ Create stylizations with different algorithms."""
         args = image_stylization.parse_args()
         content_id = args['content_id']
         style_id = args['style_id']
@@ -111,6 +122,8 @@ class Stylizations(Resource):
             mast_streamer.submit(msg)
         elif alg == 'CAST':
             cast_streamer.submit(msg)
+        elif alg == 'DIST':
+            dist_streamer.submit(msg)
         return
 
 
@@ -119,41 +132,31 @@ class StylizationId(Resource):
 
     @api.expect(image_download)
     def get(self, stylization_id):
-        """ Returns category by ID """
+        """ Returns stylization with image id. """
         args = image_download.parse_args()
         as_attachment = args.get('asAttachment')
         category = args.get('category')
 
+        content_name = os.path.splitext(stylization_id)[0]
+        fmt = os.path.splitext(stylization_id)[1].lower()
         # get intermediate stylized image or not
         if category != 'original':
-            path = os.path.join(Config.STYLIZATION_DIRECTORY, category, f'{stylization_id}')
+            path = os.path.join(Config.STYLIZATION_DIRECTORY,
+                                category, f'{stylization_id}')
         else:
-            path = os.path.join(Config.STYLIZATION_DIRECTORY, f'{stylization_id}')
+            path = os.path.join(
+                Config.STYLIZATION_DIRECTORY, f'{stylization_id}')
 
-        pil_image = None
-        if os.path.exists(path):
-            pil_image = Image.open(path)
-        if pil_image is None:
-            return {'success': False}, 400
+        if not os.path.exists(path):
+            print(f'Stylization do not exist in {path}')
+            return
 
-        # we need different size image by parameters passed from client end.
         width = args.get('width')
         height = args.get('height')
 
-        if not width:
-            width = pil_image.size[1]
-        if not height:
-            height = pil_image.size[0]
+        if is_photo(fmt):
+            return send_img(path, stylization_id, width, height, as_attachment)
 
-        img_filename = f'{stylization_id}'
+        elif is_video(fmt):
 
-        pil_image.thumbnail((width, height), Image.ANTIALIAS)
-        image_io = io.BytesIO()
-        pil_image.save(image_io, "PNG")
-        image_io.seek(0)
-
-        # complete all business logic codes here including image resizing and image transmission !
-
-        # image must be resized by previous width and height
-        # and I/O pipe must be built for bytes transmission between backend and client end
-        return send_file(image_io, attachment_filename=img_filename, as_attachment=as_attachment)
+            return send_file(path, attachment_filename=stylization_id, as_attachment=as_attachment)

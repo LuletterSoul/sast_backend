@@ -2,6 +2,7 @@ from flask_restplus import Namespace, Resource, reqparse
 from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
 from flask import send_file
+from utils import *
 
 from config import Config
 from PIL import Image
@@ -29,6 +30,8 @@ image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
 image_download.add_argument('height', type=int, default=512)
 image_download.add_argument('category', default='', type=str, required=False)
+image_download.add_argument(
+    'videoType', default='preview', type=str, required=False)
 
 
 @api.route('/')
@@ -90,35 +93,26 @@ class ContentId(Resource):
         as_attachment = args.get('asAttachment')
         category = args.get('category')
 
-        # Here content image should be loaded from corresponding directory.
-        # image = None
-        #
-        path = os.path.join(Config.CONTENT_DIRECTORY, category, f'{content_id}')
+        content_name = os.path.splitext(content_id)[0]
+        fmt = os.path.splitext(content_id)[1].lower()
+
+        path = os.path.join(Config.CONTENT_DIRECTORY,
+                            category, f'{content_id}')
         if not os.path.exists(path):
+            print(f'Content do not exist in {path}')
             return
-        pil_image = Image.open(path)
 
-        if pil_image is None:
-            return {'success': False}, 400
-
-        # we need different size image by parameters passed from client end.
         width = args.get('width')
         height = args.get('height')
 
-        if not width:
-            width = pil_image.size[1]
-        if not height:
-            height = pil_image.size[0]
+        if is_photo(fmt):
+            return send_img(path, content_id, width, height, as_attachment)
 
-        img_filename = f'{content_id}'
-
-        pil_image.thumbnail((width, height), Image.ANTIALIAS)
-        image_io = io.BytesIO()
-        pil_image.save(image_io, "PNG")
-        image_io.seek(0)
-
-        # complete all business logic codes here including image resizing and image transmission !
-
-        # image must be resized by previous width and height
-        # and I/O pipe must be built for bytes transmission between backend and client end
-        return send_file(image_io, attachment_filename=img_filename, as_attachment=as_attachment)
+        elif is_video(fmt):
+            video_type = args.get('videoType')
+            if video_type == 'preview':
+                preview_path = os.path.join(Config.CONTENT_DIRECTORY,
+                                            category, content_name, 'preview.png')
+                return send_img(preview_path, 'preview.png', width, height, as_attachment)
+            elif video_type == 'video':
+                return send_file(path, attachment_filename=content_id, as_attachment=as_attachment)

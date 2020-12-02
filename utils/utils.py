@@ -12,6 +12,9 @@
 """
 import os
 import time
+from flask import send_file
+from PIL import Image
+import io
 
 
 def get_prefix(image_name):
@@ -71,3 +74,38 @@ def parse_devices(device_string):
     :return:
     """
     return [int(d) for d in device_string.split(',')]
+
+
+def is_photo(fmt):
+    return fmt == '.png' or fmt == '.jpg' or fmt == '.bmp'
+
+
+def is_video(fmt):
+    return fmt == '.mp4' or fmt == 'mpeg'
+
+
+def send_img(path, filename, width, height, as_attachment):
+    pil_image = Image.open(path)
+
+    if pil_image is None:
+        return {'success': False}, 400
+
+    # we need different size image by parameters passed from client end.
+    # width = args.get('width')
+    # height = args.get('height')
+
+    if not width:
+        width = pil_image.size[1]
+    if not height:
+        height = pil_image.size[0]
+
+    pil_image.thumbnail((width, height), Image.ANTIALIAS)
+    file_io = io.BytesIO()
+    pil_image.save(file_io, "PNG")
+    file_io.seek(0)
+
+    # complete all business logic codes here including image resizing and image transmission !
+
+    # image must be resized by previous width and height
+    # and I/O pipe must be built for bytes transmission between backend and client end
+    return send_file(file_io, attachment_filename=filename, as_attachment=as_attachment)
