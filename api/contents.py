@@ -30,6 +30,8 @@ image_download.add_argument('asAttachment', type=bool, default=False)
 image_download.add_argument('width', type=int, default=512)
 image_download.add_argument('height', type=int, default=512)
 image_download.add_argument('category', default='', type=str, required=False)
+image_download.add_argument('style_category', default='', type=str, required=False)
+image_download.add_argument('content_category', default='', type=str, required=False)
 image_download.add_argument(
     'videoType', default='preview', type=str, required=False)
 

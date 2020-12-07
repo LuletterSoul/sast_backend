@@ -17,6 +17,7 @@ from config.config import Config
 from sockets import *
 from workers.stream import ManagedModel, mp, threading, run_redis_workers_forever
 from utils import parse_devices
+from sockets import *
 
 
 def loadImg(imgPath):
@@ -77,6 +78,19 @@ class DISTModel(ManagedModel):
         style = styleV.squeeze(0).cpu().numpy()
         sF = self.enc(styleV)
         start_time = time.time()
+        # body = {
+        #     'sid': sid,
+        #     'req_id': req_id,
+        #     'content_id': req['content_id'],
+        #     'style_id': req['style_id'],
+        #     'stylization_id': stylization_id,
+        #     'current_update_steps': -1,
+        #     'current_cost_time': cost_time,
+        #     'percent': round(cost_time / Config.MAST_TOTAL_TIME * 100, 1),
+        #     # 1 represent 'COMPLETE',otherwise it is 'SYNTHESISING',
+        #     'total_time': Config.MAST_TOTAL_TIME,
+        #     'total_update_steps': -1,
+        # }
         for i, (content, contentName) in enumerate(content_loader):
             print('Transfer frame %d...' % i)
             contentName = contentName[0]
@@ -106,10 +120,12 @@ class DISTModel(ManagedModel):
         content_name = os.path.splitext(content_id)[0]
         style_name = os.path.splitext(style_id)[0]
         category = msg.get('category')
+        style_category = msg.get('style_category')
+        content_category = msg.get('content_category')
         content_path = os.path.join(
-            Config.CONTENT_DIRECTORY, category, content_name)
+            Config.CONTENT_DIRECTORY, content_category, content_name)
         style_path = os.path.join(
-            category, Config.STYLE_DIRECTORY,  category,style_id)
+            category, Config.STYLE_DIRECTORY,  style_category,style_id)
         msg['timestamp'] = time.time()
         try:
             stylization_id = self.process(content_path, style_path, content_name, style_name)

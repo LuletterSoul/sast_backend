@@ -216,13 +216,16 @@ class CastModel(ManagedModel):
         content_id = msg.get('content_id')
         style_id = msg.get('style_id')
         category = msg.get('category')
+        style_category = msg.get('style_category')
+        content_category = msg.get('content_category')
+
 
         # warped image will be saved in content directory as input of stylization
         warped_id = warp_content_to_style_images(
-            content_id, style_id, category=category)
+            content_id, style_id, category=content_category)
 
         # related image output directory
-        style_path = os.path.join(Config.STYLE_DIRECTORY, category, style_id)
+        style_path = os.path.join(Config.STYLE_DIRECTORY, style_category, style_id)
         content_path = os.path.join(Config.CONTENT_DIRECTORY, warped_id)
         stylization_id = compose_prefix_id(content_id, style_id)
         output_path = os.path.join(

@@ -46,7 +46,11 @@ image_stylization.add_argument('style_mask', location='json',
 image_stylization.add_argument(
     'category', default='', type=str, required=False)
 
+image_stylization.add_argument(
+    'content_category', default='', type=str, required=False)
 # image_stylization.add_argument('content_mask',type=list,location )
+image_stylization.add_argument(
+    'style_category', default='', type=str, required=False)
 # create_annotation.add_argument('keypoints', type=list, location='json', default=[])
 image_download = reqparse.RequestParser()
 image_download.add_argument('asAttachment', type=bool, default=False)
@@ -97,6 +101,8 @@ class Stylizations(Resource):
         alg = args['alg']
         sid = args['sid']
         category = args['category']
+        style_category = args['style_category']
+        content_category = args['content_category']
 
         content_mask = args['content_mask']
         style_mask = args['style_mask']
@@ -116,7 +122,9 @@ class Stylizations(Resource):
             'height': height,
             'content_mask': content_mask,
             'style_mask': style_mask,
-            'category': category
+            'category': category,
+            'style_category': style_category,
+            'content_category': content_category,
         }]
         if alg == 'MAST':
             mast_streamer.submit(msg)
