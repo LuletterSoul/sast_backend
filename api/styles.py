@@ -59,7 +59,6 @@ class Styles(Resource):
         else:
             page_style_ids = style_ids[page * size:(page+1)*size]
         
-        print(page_style_ids)
 
         return {
             "total": total,

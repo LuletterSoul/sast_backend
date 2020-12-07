@@ -22,6 +22,7 @@ import threading
 import time
 import uuid
 import weakref
+import traceback
 from queue import Queue, Empty
 from typing import List
 
@@ -219,6 +220,7 @@ class _BaseStreamWorker(object):
             try:
                 model_outputs.append(self.model_predict(model_input))
             except Exception:
+                traceback.print_exc()
                 model_outputs.append(-1)
 
         # try:

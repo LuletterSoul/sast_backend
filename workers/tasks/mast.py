@@ -165,23 +165,23 @@ class MastModel(ManagedModel):
         return c_mask, s_mask
 
     def predict(self, msg):
-        print(f'[Mast]: get msg {msg} from receive queue, start process...')
-        # mast_report.delay(msg)
-        report_result = mast_report.apply_async(args=(msg,))
-        content_id = msg.get('content_id')
-        style_id = msg.get('style_id')
-        width = msg.get('width')
-        height = msg.get('height')
-        content_mask_points_list = msg.get('content_mask')
-        style_mask_points_list = msg.get('style_mask')
-        category = msg.get('category')
-        c_mask, s_mask = self.create_content_and_style_mask(width, height, content_mask_points_list,
-                                                            style_mask_points_list)
-
-        stylization_id = f'{os.path.splitext(content_id)[0]}_{os.path.splitext(style_id)[0]}.png'
-        msg['stylization_id'] = stylization_id
-        msg['timestamp'] = time.time()
         try:
+            print(f'[Mast]: get msg {msg} from receive queue, start process...')
+            # mast_report.delay(msg)
+            report_result = mast_report.apply_async(args=(msg,))
+            content_id = msg.get('content_id')
+            style_id = msg.get('style_id')
+            width = msg.get('width')
+            height = msg.get('height')
+            content_mask_points_list = msg.get('content_mask')
+            style_mask_points_list = msg.get('style_mask')
+            category = msg.get('category')
+            c_mask, s_mask = self.create_content_and_style_mask(width, height, content_mask_points_list,
+                                                                style_mask_points_list)
+
+            stylization_id = f'{os.path.splitext(content_id)[0]}_{os.path.splitext(style_id)[0]}.png'
+            msg['stylization_id'] = stylization_id
+            msg['timestamp'] = time.time()
             s = time.time()
             self.process(content_id, style_id, width, height, c_mask, s_mask, category)
             t = time.time() - s
