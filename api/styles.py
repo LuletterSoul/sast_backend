@@ -14,7 +14,7 @@ api = Namespace('styles', description='Styles related operations')
 os.makedirs(Config.STYLE_DIRECTORY, exist_ok=True)
 
 image_all = reqparse.RequestParser()
-image_all.add_argument('page', default=1, type=int)
+image_all.add_argument('page', default=0, type=int)
 image_all.add_argument('size', default=50, type=int, required=False)
 image_all.add_argument('category', default='', type=str, required=False)
 
@@ -37,12 +37,8 @@ class Styles(Resource):
     def get(self):
         """ Returns pageable content image"""
         args = image_all.parse_args()
-        per_page = args['size']
-        page = args['page'] - 1
-
-        style_ids = os.listdir(Config.STYLE_DIRECTORY)
-        total = len(style_ids)
-        pages = int(total / per_page)
+        size = args['size']
+        page = args['page']
 
         category = args['category']
 
@@ -52,12 +48,25 @@ class Styles(Resource):
             style_ids = []
         else:
             style_ids = os.listdir(path)
+
+        total = len(style_ids)
+        pages = int(total / size)
+
+        page_style_ids = []
+
+        if ((page + 1) * size > total) and (page * size < total):
+            page_style_ids = style_ids[page*size:]
+        else:
+            page_style_ids = style_ids[page * size:(page+1)*size]
+        
+        print(page_style_ids)
+
         return {
             "total": total,
             "pages": pages,
             "page": page,
-            "size": per_page,
-            "style_ids": style_ids
+            "size": size,
+            "style_ids": page_style_ids
         }
 
     @api.expect(image_upload)

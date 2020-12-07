@@ -16,7 +16,7 @@ os.makedirs(Config.CONTENT_DIRECTORY, exist_ok=True)
 # os.makedirs(Config.CAST_DATA_DIR, exist_ok=True)
 
 image_all = reqparse.RequestParser()
-image_all.add_argument('page', default=1, type=int)
+image_all.add_argument('page', default=0, type=int)
 image_all.add_argument('size', default=50, type=int, required=False)
 image_all.add_argument('category', default='', type=str, required=False)
 
@@ -41,8 +41,8 @@ class Contents(Resource):
     def get(self):
         """ Returns pageable content image"""
         args = image_all.parse_args()
-        per_page = args['size']
-        page = args['page'] - 1
+        size = args['size']
+        page = args['page']
         category = args['category']
 
         path = os.path.join(Config.CONTENT_DIRECTORY, category)
@@ -51,15 +51,24 @@ class Contents(Resource):
             content_ids = []
         else:
             content_ids = [p for p in os.listdir(path) if os.path.isfile(os.path.join(path,p))]
+        
         total = len(content_ids)
-        pages = int(total / per_page)
+        pages = int(total / size)
+
+        page_content_ids = []
+
+        if (page + 1) * size > total and page * size < total:
+            page_content_ids = content_ids[page*size:]
+        else:
+            page_content_ids = content_ids[page * size:(page+1)*size]
+
 
         return {
             "total": total,
             "pages": pages,
             "page": page,
-            "size": per_page,
-            "content_ids": content_ids
+            "size": size,
+            "content_ids": page_content_ids 
         }
 
     @api.expect(image_upload)

@@ -82,7 +82,7 @@ if __name__ == '__main__':
                         help='ip address of flask server in local network.')
     parser.add_argument('--port', type=int, default=5000,
                         help='listening port of flask server in local network.')
-    parser.add_argument('--debug', type=bool, default=True,
+    parser.add_argument('--debug', type=bool, default=False,
                         help='listening port of flask server in local network.')
 
     args = parser.parse_args()
