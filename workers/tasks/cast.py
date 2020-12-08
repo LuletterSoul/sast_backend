@@ -213,32 +213,32 @@ class CastModel(ManagedModel):
         print(f'[Cast]: Load models completely!')
 
     def predict(self, msg):
-        content_id = msg.get('content_id')
-        style_id = msg.get('style_id')
-        category = msg.get('category')
-        style_category = msg.get('style_category')
-        content_category = msg.get('content_category')
-
-
-        # warped image will be saved in content directory as input of stylization
-        warped_id = warp_content_to_style_images(
-            content_id, style_id, category=content_category)
-
-        # related image output directory
-        style_path = os.path.join(Config.STYLE_DIRECTORY, style_category, style_id)
-        content_path = os.path.join(Config.CONTENT_DIRECTORY, warped_id)
-        stylization_id = compose_prefix_id(content_id, style_id)
-        output_path = os.path.join(
-            Config.STYLIZATION_DIRECTORY, stylization_id)
-        intermediate_id_prefix = get_prefix(warped_id)
-
-        # create intermediate stylized image output directory.
-        intermediate_output_dir = os.path.join(
-            Config.STYLIZATION_DIRECTORY, intermediate_id_prefix)
-        os.makedirs(intermediate_output_dir, exist_ok=True)
         try:
+            content_id = msg.get('content_id')
+            style_id = msg.get('style_id')
+            category = msg.get('category')
+            style_category = msg.get('style_category')
+            content_category = msg.get('content_category')
+
+
+            # warped image will be saved in content directory as input of stylization
+            warped_id = warp_content_to_style_images(
+                content_id, style_id, category=content_category)
+
+            # related image output directory
+            style_path = os.path.join(Config.STYLE_DIRECTORY, style_category, style_id)
+            content_path = os.path.join(Config.CONTENT_DIRECTORY, warped_id)
+            stylization_id = compose_prefix_id(content_id, style_id)
+            output_path = os.path.join(
+                Config.STYLIZATION_DIRECTORY, stylization_id)
+            intermediate_id_prefix = get_prefix(warped_id)
+
+            # create intermediate stylized image output directory.
+            intermediate_output_dir = os.path.join(
+                Config.STYLIZATION_DIRECTORY, intermediate_id_prefix)
+            os.makedirs(intermediate_output_dir, exist_ok=True)
             self.render(msg, content_path, style_path, intermediate_id_prefix, intermediate_output_dir, stylization_id,
-                        output_path)
+                            output_path)
         except Exception as e:
             msg['status'] = 'failed'
             synthesis_failed(msg)
