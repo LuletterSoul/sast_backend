@@ -40,7 +40,7 @@ def compose_prefix(img_name1, img_name2):
     return f'{get_prefix(img_name1)}-{get_prefix(img_name2)}'
 
 
-def construct_cast_msg(msg, stylization_id, current_update_steps, current_cost_time, total_steps, category):
+def construct_cast_msg(msg, stylization_id, current_update_steps, current_cost_time, total_steps, category,content_category, style_category):
     """
     construct synthesising message body, used by client end.
     :param msg:
@@ -64,6 +64,36 @@ def construct_cast_msg(msg, stylization_id, current_update_steps, current_cost_t
         'total_update_steps': total_steps,
         'timestamp': time.time(),
         'category': category,
+        'content_category': content_category,
+        'style_category': style_category,
+    }
+
+def construct_dist_msg(msg, stylization_id, current_step, current_cost_time, total_steps, category,content_category, style_category):
+    """
+    construct synthesising message body, used by client end.
+    :param msg:
+    :param stylization_id:
+    :param current_update_steps:
+    :param current_cost_time:
+    :param total_steps:
+    :return:
+    """
+    return {
+        'sid': msg['sid'],
+        'req_id': msg['req_id'],
+        'content_id': msg['content_id'],
+        'style_id': msg['style_id'],
+        'stylization_id': stylization_id,
+        'current_step': current_step,
+        'current_cost_time': current_cost_time,
+        'percent': round(current_step / total_steps * 100, 0),
+        # 1 represent 'COMPLETE',otherwise it is 'SYNTHESISING',
+        'total_time': -1,
+        'total_steps': total_steps,
+        'timestamp': time.time(),
+        'category': category,
+        'content_category': content_category,
+        'style_category': style_category,
     }
 
 

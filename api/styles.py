@@ -19,6 +19,9 @@ image_all.add_argument('size', default=50, type=int, required=False)
 image_all.add_argument('category', default='', type=str, required=False)
 
 image_upload = reqparse.RequestParser()
+image_upload.add_argument('category', location='args',
+                          type=str, default='COCO',
+                          help='File category')
 image_upload.add_argument('file', location='files',
                           type=FileStorage, required=True,
                           help='PNG or JPG file')
@@ -73,10 +76,11 @@ class Styles(Resource):
         """ Creates an image """
         args = image_upload.parse_args()
         image = args['file']
+        category = args['category']
 
-        directory = Config.STYLE_DIRECTORY
-
-        path = os.path.join(directory, image.filename)
+        directory = os.path.join(Config.CONTENT_DIRECTORY, category)
+        os.makedirs(directory,exist_ok=True)
+        path = os.path.join(directory,image.filename)
 
         # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400

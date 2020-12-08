@@ -1,4 +1,5 @@
 # coding=UTF-8
+from utils.utils import construct_dist_msg
 from api import category
 import os
 import torch
@@ -56,16 +57,21 @@ class DISTModel(ManagedModel):
             self.matrix = self.matrix.cuda()
         print(f'[DIST]: Load models completely!')
 
-    def process(self, content_path, style_path,content_name,style_name):
+    def process(self, content_path, style_path,content_name,style_name,msg,category,content_category,style_category):
         """
         :param video_dir_id: 内容图id,带后缀
         :param style_img_id: 风格图id,带后缀
         :return: 风格化视频文件目录id
         """
+
         print(style_path)
         styleV = loadImg(style_path).unsqueeze(0)
         content_dataset = Dataset_Video(
             content_path, Config.LOAD_SIZE, Config.FINE_SIZE_H, Config.FINE_SIZE_W, test=True, video=True)
+        
+        total_steps = len(content_dataset) * 2
+        current_step = 0
+
         content_loader = torch.utils.data.DataLoader(dataset=content_dataset,
                                                      batch_size=1,
                                                      shuffle=False)
@@ -91,6 +97,7 @@ class DISTModel(ManagedModel):
         #     'total_time': Config.MAST_TOTAL_TIME,
         #     'total_update_steps': -1,
         # }
+        stylization_id = f'{content_name}_{style_name}.mp4'
         for i, (content, contentName) in enumerate(content_loader):
             print('Transfer frame %d...' % i)
             contentName = contentName[0]
@@ -104,9 +111,14 @@ class DISTModel(ManagedModel):
 
             transfer = transfer.clamp(0, 1)
             result_frames.append(transfer.squeeze(0).cpu().numpy())
+            current_step +=1
+            current_time = time.time() - start_time
+            msg = construct_dist_msg(msg,stylization_id,current_step,current_time,total_steps,category,content_category,style_category)
+            synthesising(msg)
+
         end_time = time.time()
         print('Elapsed time is: %.4f seconds' % (end_time - start_time))
-        stylization_id = makeVideo(f'{content_path}.mp4',contents, style, result_frames, self.output_dir, content_name, style_name)
+        makeVideo(f'{content_path}.mp4',contents, style, result_frames, self.output_dir, content_name, style_name,msg)
         # c = content_path.split('/')[-2]
         # s = os.path.basename(style_path).split('.')[0]
         # video_result_dir_id = f'{c}_{s}.avi'
@@ -128,7 +140,7 @@ class DISTModel(ManagedModel):
             category, Config.STYLE_DIRECTORY,  style_category,style_id)
         msg['timestamp'] = time.time()
         try:
-            stylization_id = self.process(content_path, style_path, content_name, style_name)
+            stylization_id = self.process(content_path, style_path, content_name, style_name,msg,category,content_category,style_category)
             msg['status'] = 'success'
             msg['stylization_id'] = stylization_id
             synthesis_complete(msg)

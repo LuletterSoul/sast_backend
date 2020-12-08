@@ -1,5 +1,6 @@
 from __future__ import division
 import os
+from sockets import synthesising
 from utils import video
 import cv2
 import time
@@ -54,7 +55,7 @@ def numpy2cv2(cont,style,prop,width,height):
     #return np.concatenate((cont,np.concatenate((style,prop),axis=1)),axis=1)
     return prop,cont
 
-def makeVideo(ori_content,content,style,props,outf,cname,sname):
+def makeVideo(ori_content,content,style,props,outf,cname,sname,msg):
     print('Stack transferred frames back to video...')
     layers,height,width = content[0].shape
     fourcc = cv2.VideoWriter_fourcc(*'MP4V')    
@@ -72,8 +73,9 @@ def makeVideo(ori_content,content,style,props,outf,cname,sname):
         imgc = cv2.imread('content.png')
 
         video.write(imgj)
-        # ori_video.write(imgc)
-        # RGB or BRG, yuks
+        msg['current_step'] = msg['current_step'] + 1
+        msg['percent'] = round(msg['current_step'] / msg['total_steps'] * 100,0)
+        synthesising(msg)
     video.release()
     # ori_video.release()
     os.remove('prop.png')
