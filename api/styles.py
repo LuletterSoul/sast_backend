@@ -78,7 +78,7 @@ class Styles(Resource):
         image = args['file']
         category = args['category']
 
-        directory = os.path.join(Config.CONTENT_DIRECTORY, category)
+        directory = os.path.join(Config.STYLE_DIRECTORY, category)
         os.makedirs(directory,exist_ok=True)
         path = os.path.join(directory,image.filename)
 
