@@ -20,7 +20,7 @@ class DISTServer(object):
         self.output_dir = Config.output_dir_dist
         self.encoder_dir = Config.DIST_ENCODER
         self.decoder_dir = Config.DIST_DECODER
-        self.matrix = Config.DIST_MATRIX
+        self.matrix_dir = Config.DIST_MATRIX
         self.gpu_id = Config.DIST_DEVICES
         os.makedirs(self.content_dir, exist_ok=True)
         os.makedirs(self.style_dir, exist_ok=True)
@@ -34,6 +34,7 @@ class DISTServer(object):
         self.enc = SmallEncoder4_16x_aux(self.encoder_dir)
         self.dec = SmallDecoder4_16x(self.decoder_dir)
         self.matrix = MulLayer_se_sd_new1('r41')
+        self.matrix.load_state_dct(torch.load(self.matrix_dir))
 
     def process(self, content_img_id, style_img_id, content_landmark, style_landmark):
         """

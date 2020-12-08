@@ -81,6 +81,7 @@ class Styles(Resource):
         directory = os.path.join(Config.STYLE_DIRECTORY, category)
         os.makedirs(directory,exist_ok=True)
         path = os.path.join(directory,image.filename)
+        print(path)
 
         # if os.path.exists(path):
         #     return {'message': 'file already exists'}, 400

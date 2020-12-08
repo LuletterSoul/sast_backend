@@ -37,7 +37,7 @@ class DISTModel(ManagedModel):
         self.output_dir = Config.STYLIZATION_DIRECTORY
         self.encoder_dir = Config.DIST_ENCODER
         self.decoder_dir = Config.DIST_DECODER
-        self.matrix = Config.DIST_MATRIX
+        self.matrix_dir = Config.DIST_MATRIX
         os.makedirs(self.output_dir, exist_ok=True)
 
     def init_model(self):
@@ -50,7 +50,7 @@ class DISTModel(ManagedModel):
         self.dec = SmallDecoder4_16x(self.decoder_dir)
         self.matrix = MulLayer_se_sd_new1('r41')
         self.matrix.load_state_dict(torch.load(
-            'dist/models/FTM.pth', map_location='cuda:0'))
+            self.matrix_dir, map_location='cuda:0'))
         if torch.cuda.is_available():
             self.enc = self.enc.cuda()
             self.dec = self.dec.cuda()

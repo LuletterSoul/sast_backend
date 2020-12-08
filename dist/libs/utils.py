@@ -70,8 +70,10 @@ def makeVideo(ori_content,content,style,props,outf,cname,sname,msg):
         cv2.imwrite('content.png',cont)
         # TODO: this is ugly, fix this
         imgj = cv2.imread('prop.png')
-        imgc = cv2.imread('content.png')
+        # imgc = cv2.imread('content.png')
 
+        imgj = cv2.cvtColor(imgj,cv2.COLOR_BGR2RGB)
+        # imgc = cv2.cvtColor(imgc,cv2.COLOR_BGR2RGB)
         video.write(imgj)
         msg['current_step'] = msg['current_step'] + 1
         msg['percent'] = round(msg['current_step'] / msg['total_steps'] * 100,0)
