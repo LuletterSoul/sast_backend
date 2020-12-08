@@ -126,20 +126,20 @@ class DISTModel(ManagedModel):
         return stylization_id
 
     def predict(self, msg):
-        print(f'[DIST]: get msg {msg} from receive queue, start process...')
-        content_id = msg.get('content_id')
-        style_id = msg.get('style_id')
-        content_name = os.path.splitext(content_id)[0]
-        style_name = os.path.splitext(style_id)[0]
-        category = msg.get('category')
-        style_category = msg.get('style_category')
-        content_category = msg.get('content_category')
-        content_path = os.path.join(
-            Config.CONTENT_DIRECTORY, content_category, content_name)
-        style_path = os.path.join(
-            category, Config.STYLE_DIRECTORY,  style_category,style_id)
-        msg['timestamp'] = time.time()
         try:
+            print(f'[DIST]: get msg {msg} from receive queue, start process...')
+            content_id = msg.get('content_id')
+            style_id = msg.get('style_id')
+            content_name = os.path.splitext(content_id)[0]
+            style_name = os.path.splitext(style_id)[0]
+            category = msg.get('category')
+            style_category = msg.get('style_category')
+            content_category = msg.get('content_category')
+            content_path = os.path.join(
+                Config.CONTENT_DIRECTORY, content_category, content_name)
+            style_path = os.path.join(
+                category, Config.STYLE_DIRECTORY,  style_category,style_id)
+            msg['timestamp'] = time.time()
             stylization_id = self.process(content_path, style_path, content_name, style_name,msg,category,content_category,style_category)
             msg['status'] = 'success'
             msg['stylization_id'] = stylization_id
