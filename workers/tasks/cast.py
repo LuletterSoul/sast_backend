@@ -219,15 +219,24 @@ class CastModel(ManagedModel):
             category = msg.get('category')
             style_category = msg.get('style_category')
             content_category = msg.get('content_category')
+            warped_ids = [get_prefix(p) for p in os.listdir(Config.WARP_DIRECTORY)]
+
+            is_existed_warp = False
 
 
+            if get_prefix(content_id) in warped_ids:
+                content_path = os.path.join(Config.WARP_DIRECTORY, f'{get_prefix(content_id)}.png')
+                warped_id = content_id
+                is_existed_warp = True
             # warped image will be saved in content directory as input of stylization
-            warped_id = warp_content_to_style_images(
+            else:
+                warped_id = warp_content_to_style_images(
                 content_id, style_id, category=content_category)
+                content_path = os.path.join(Config.CONTENT_DIRECTORY, warped_id)
+            
 
             # related image output directory
             style_path = os.path.join(Config.STYLE_DIRECTORY, style_category, style_id)
-            content_path = os.path.join(Config.CONTENT_DIRECTORY, warped_id)
             stylization_id = compose_prefix_id(content_id, style_id)
             output_path = os.path.join(
                 Config.STYLIZATION_DIRECTORY, stylization_id)
@@ -246,7 +255,7 @@ class CastModel(ManagedModel):
         finally:
             shutil.rmtree(intermediate_output_dir)
             # we don't need warped image saved at content directory.
-            if os.path.exists(content_path):
+            if os.path.exists(content_path) and not is_existed_warp:
                 os.remove(content_path)
 
     def render(self, msg, content_path, style_path, intermediate_id_prefix, intermediate_output_dir, stylization_id,

@@ -31,6 +31,8 @@ class Config:
         "STYLE_DIRECTORY", os.path.join(root_path, "data/styles"))
     STYLIZATION_DIRECTORY = os.getenv(
         "STYLIZATION_DIRECTORY", os.path.join(root_path, "data/stylizations"))
+    WARP_DIRECTORY = os.getenv(
+        "WARP_DIRECTORY", os.path.join(root_path, "data/warp"))
     VIDEO_DIRECTORY = os.getenv(
         "VIDEO_DIRECTORY", os.path.join(root_path, "data/videos"))
     LANDMARK_DIRECTORY = os.getenv(
