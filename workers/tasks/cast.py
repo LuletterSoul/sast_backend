@@ -96,7 +96,7 @@ class DefaultCastConfig:
     # max_iter_hr = 100
     max_iter = 200
     max_iter_hr = 100
-    update_step = 30
+    update_step = 100
     update_step_hr = 50
     img_size = 256
     img_size_hr = 512

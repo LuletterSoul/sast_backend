@@ -109,7 +109,7 @@ def is_photo(fmt):
 
 
 def is_video(fmt):
-    return fmt == '.mp4' or fmt == 'mpeg'
+    return fmt == '.mp4' or fmt == 'mpeg' or fmt == '.avi' or fmt =='mov' or fmt == 'rmvb'
 
 
 def send_img(path, filename, width, height, as_attachment):
