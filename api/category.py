@@ -35,16 +35,19 @@ class Category(Resource):
                 {
                     'value': 'MAST',
                     'label': 'MAST',
+                    'upload': True,
                     'disable': False
                 },
                 {
                     'value': 'CAST',
                     'label': 'CAST',
+                    'upload': True,
                     'disable': False
                 },
                 {
                     'value': 'DIST',
                     'label': 'DIST',
+                    'upload': True,
                     'disable': False
                 }
             ],
@@ -52,22 +55,22 @@ class Category(Resource):
                 [
                     {
                         'value': 'WebCaricature',
-                        'label': 'WebCaricature',
+                        'label': '漫画',
                         'disable': False
                     },
                     {
                         'value': 'COCO',
-                        'label': 'COCO',
+                        'label': '生活',
                         'disable': False
                     },
                     {
                         'value': 'ArtisticFaces',
-                        'label': 'ArtisticFaces',
+                        'label': '油画',
                         'disable': False
                     },
                     {
                         'value': 'Video',
-                        'label': 'Video',
+                        'label': '色彩',
                         'disable': False
                     },
             ],
@@ -145,66 +148,78 @@ class Category(Resource):
                 'CAST': [
                     {
                         'value': 'COCO',
-                        'label': 'COCO',
+                        'label': '生活',
+                        'upload': False,
                         'disable': True
                     },
                     {
                         'value': 'WebCaricature',
-                        'label': 'WebCaricature',
+                        'label': '漫画',
+                        'upload': False,
                         'disable': False
                     },
                     {
                         'value': 'ArtisticFaces',
-                        'label': 'ArtisticFaces',
+                        'label': '油画',
+                        'upload': False,
                         'disable': False
                     },
                     {
                         'value': 'Video',
-                        'label': 'Video',
+                        'label': '色彩',
+                        'upload': False,
                         'disable': True
                     },
                 ],
                 'MAST': [
                     {
                         'value': 'WebCaricature',
-                        'label': 'WebCaricature',
+                        'label': '漫画',
+                        'upload': True,
                         'disable': False
                     },
                     {
                         'value': 'COCO',
-                        'label': 'COCO',
+                        'label': '生活',
+                        'upload': True,
                         'disable': False
                     },
                     {
                         'value': 'ArtisticFaces',
-                        'label': 'ArtisticFaces',
+                        'label': '油画',
+                        'upload': True,
                         'disable': False
                     },
                     {
                         'value': 'Video',
-                        'label': 'Video',
+                        'label': '色彩',
+                        'upload': True,
                         'disable': True
                     },
                 ],
                 'DIST': [
                     {
                         'value': 'WebCaricature',
-                        'label': 'WebCaricature',
-                        'disable': True
+                        'label': '漫画',
+                        'upload': True,
+                        'disable': False
                     },
                     {
                         'value': 'COCO',
-                        'label': 'COCO',
-                        'disable': True
+                        'label': '生活',
+                        'upload': True,
+                        'disable': False
                     },
                     {
                         'value': 'ArtisticFaces',
-                        'label': 'ArtisticFaces',
-                        'disable': True
+                        'label': '油画',
+                        'upload': True,
+                        'disable': False
                     },
                     {
                         'value': 'Video',
-                        'label': 'Video',
+                        'label': '色彩',
+                        'upload': True,
                         'disable': False
                     },
                 ]

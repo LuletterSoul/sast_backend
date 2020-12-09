@@ -322,6 +322,8 @@ class CastModel(ManagedModel):
             optimizer.step(closure)
         out_img = postp(opt_img.data[0].cpu().squeeze())
 
+        del opt_img
+
         M = Maintainer(self.vgg, content_image_hr, style_image_hr, content_layers, style_layers, laplacia_layers,
                        self.device, args.kl,
                        args.km, content_mask, style_mask, args.use_mask, args.mean)
@@ -375,6 +377,9 @@ class CastModel(ManagedModel):
         msg['timestamp'] = time.time()
         synthesis_complete(msg)
         # clean intermediate stylized images
+        optimizer.zero_grad()
+        torch.cuda.empty_cache() 
+        del opt_img
 
     def save_optimized_img(self, opt_img, output_path, height=None, width=None):
         out_img_hr = post_tensor(opt_img.data.cpu().squeeze()).unsqueeze(0)
