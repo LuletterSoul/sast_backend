@@ -105,7 +105,7 @@ def parse_devices(device_string):
 
 
 def is_photo(fmt):
-    return fmt == '.png' or fmt == '.jpg' or fmt == '.bmp'
+    return fmt == '.png' or fmt == '.jpg' or fmt == '.bmp' or fmt == '.jpeg' or fmt == 'tiff' or fmt == 'gif'
 
 
 def is_video(fmt):

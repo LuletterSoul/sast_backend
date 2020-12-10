@@ -8,14 +8,16 @@ def unframe(input_path, output_path):
     cap = cv2.VideoCapture(input_path)
     cnt = 0
     os.makedirs(output_path, exist_ok=True)
-    ret, frame = cap.read()
-    while ret:
+    while True:
+        ret, frame = cap.read()
+        if frame is None:
+            return
+        # frame  = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
         if cnt == 0:
             cv2.imwrite(os.path.join(output_path, 'preview.png'), frame)
         cv2.imwrite(os.path.join(output_path, f'{cnt}.png'), frame)
-        cnt = cnt + 1
-        ret, frame = cap.read()
         print(f'Unframed {cnt} frames')
+        cnt = cnt + 1
 
 def cvt_video(input_path, output_dir, video_prefix):
     cap = cv2.VideoCapture(input_path)
@@ -48,6 +50,6 @@ if __name__ == "__main__":
         video_prefix = os.path.splitext(v)[0]
         output_path = os.path.join(video_dir, video_prefix)
         print(f'Processing {video_path}')
-        # unframe(video_path, output_path)
-        cvt_video(video_path,output_dir,video_prefix)
+        unframe(video_path, output_path)
+        # cvt_video(video_path,output_dir,video_prefix)
         print(f'Done {video_path}')
